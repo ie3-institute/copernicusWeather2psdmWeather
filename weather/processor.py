@@ -12,12 +12,15 @@ from coordinates.coordinates import create_coordinates_df
 from weather.convert import convert
 from weather.database import create_database_and_tables, engine
 
+from .db_migration import migrate_time_column
 from .timer import timer
 
 logger = logging.getLogger(__name__)
 
 
-def process_weather_data(input_dir, file_name_base, batch_size=1000):
+def process_weather_data(
+    input_dir, file_name_base, batch_size=1000, perform_migration=True
+):
     """
     Process weather data from NetCDF files and store in database.
 
@@ -80,3 +83,7 @@ def process_weather_data(input_dir, file_name_base, batch_size=1000):
         # Close the datasets
         accum_data.close()
         instant_data.close()
+
+    # Perform database migration after all data has been processed
+    if perform_migration:
+        migrate_time_column()

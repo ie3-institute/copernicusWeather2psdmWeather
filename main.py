@@ -33,6 +33,13 @@ def parse_arguments():
         type=str,
         help="Override log file path from config file",
     )
+    parser.add_argument(
+        "--no-migration",
+        dest="perform_migration",
+        action="store_false",
+        help="Skip database migration after processing",
+    )
+    parser.set_defaults(perform_migration=True)
     return parser.parse_args()
 
 
@@ -56,6 +63,7 @@ def main():
         log_file = (
             args.log_file if args.log_file is not None else config.get("log_file")
         )
+        perform_migration = True
 
         # Get input directory from config
         input_dir = config.get("input_dir")
@@ -69,9 +77,12 @@ def main():
         logger.info(f"Using input directory: {input_dir}")
         logger.info(f"Using file name base: {file_name_base}")
         logger.info(f"Using batch size: {batch_size}")
+        logger.info(
+            f"Database migration: {'Enabled' if perform_migration else 'Disabled'}"
+        )
 
         logger.info("Starting weather data processing")
-        process_weather_data(input_dir, file_name_base, batch_size)
+        process_weather_data(input_dir, file_name_base, batch_size, perform_migration)
         logger.info("Processing completed successfully")
     except Exception as e:
         logger.error(f"Error during processing: {e}", exc_info=True)
