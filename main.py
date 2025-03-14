@@ -3,7 +3,6 @@
 Main entry point for weather data processing application.
 """
 import argparse
-import logging
 from weather.config import load_config
 from weather.logging_setup import setup_logging
 from weather.processor import process_weather_data
