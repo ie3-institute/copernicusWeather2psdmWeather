@@ -33,12 +33,12 @@ def migrate_time_column():
             migration_steps = [
                 # 1. Create new temporary table
                 """
-                CREATE TABLE weathervalue_temp AS 
+                CREATE TABLE weathervalue_temp AS
                 SELECT * FROM weathervalue WHERE 1=0
                 """,
                 # 2. Alter the temporary table to have the correct column type
                 """
-                ALTER TABLE weathervalue_temp 
+                ALTER TABLE weathervalue_temp
                 ALTER COLUMN time TYPE timestamptz
                 USING (REPLACE(time::text, 'Z', '+00')::timestamptz)
                 """,
@@ -52,7 +52,7 @@ def migrate_time_column():
                 """,
                 # 4. Add primary key constraint to the temporary table
                 """
-                ALTER TABLE weathervalue_temp 
+                ALTER TABLE weathervalue_temp
                 ADD PRIMARY KEY (time, coordinate_id)
                 """,
                 # 5. Rename the tables (atomic operation in PostgreSQL)
