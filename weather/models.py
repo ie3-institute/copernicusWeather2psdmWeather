@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlmodel import Field, SQLModel
 

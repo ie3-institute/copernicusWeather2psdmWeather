@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import numpy as np
 import pytz
 from netCDF4 import Dataset, num2date
 from sqlmodel import Session
