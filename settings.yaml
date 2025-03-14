@@ -1,0 +1,6 @@
+db_user: "postgres"
+db_port: 5432
+db_password: "postgres"
+db_name: "westfalia_2024_06_01-2024_06_07-ecmfw"
+input_dir: "input"
+file_name_base: "westfalia_2024_06_01-2024_06_07"
