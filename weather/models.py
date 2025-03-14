@@ -1,7 +1,7 @@
 import uuid
 
-from sqlmodel import Field, SQLModel
 from sqlalchemy.ext.declarative import declarative_base
+from sqlmodel import Field, SQLModel
 
 Base = declarative_base()
 
@@ -9,6 +9,7 @@ Base = declarative_base()
 # FIXME: This can be changed to from lat lon to POINTS, then the SqlWeatherCoordinateSource can be used in SIMONA which is a bit faster
 class Coordinate(SQLModel, table=True):
     """Represents a geographical coordinate."""
+
     id: int = Field(default=None, primary_key=True)
     latitude: float
     longitude: float
@@ -16,7 +17,9 @@ class Coordinate(SQLModel, table=True):
 
     def __eq__(self, other):
         if isinstance(other, Coordinate):
-            return (self.latitude == other.latitude) and (self.longitude == other.longitude)
+            return (self.latitude == other.latitude) and (
+                self.longitude == other.longitude
+            )
         return NotImplemented
 
     def __hash__(self):

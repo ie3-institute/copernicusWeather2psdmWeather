@@ -1,19 +1,23 @@
 from datetime import datetime
-import pytz
-from netCDF4 import num2date, Dataset
-from sqlmodel import Session
-from weather.models import WeatherValue
+
 import numpy as np
+import pytz
+from netCDF4 import Dataset, num2date
+from sqlmodel import Session
+
+from weather.models import WeatherValue
 
 # Correct base time: 1970-01-01 for "seconds since 1970-01-01"
 BASE_TIME = datetime(year=1970, month=1, day=1, tzinfo=pytz.utc)
 
 
-def convert(session: Session,
-                  accum_data: Dataset,
-                  instant_data: Dataset,
-                  coordinates: dict,
-                  batch_size: int = 1000):
+def convert(
+    session: Session,
+    accum_data: Dataset,
+    instant_data: Dataset,
+    coordinates: dict,
+    batch_size: int = 1000,
+):
     """
     Converts raw weather data from two NetCDF datasets into database entries.
 
@@ -30,7 +34,7 @@ def convert(session: Session,
     time_objects = num2date(time_values, units=time_units)
 
     # Convert time objects to formatted strings once
-    formatted_times = [t.strftime('%Y-%m-%dT%H:%M:%S') + 'Z' for t in time_objects]
+    formatted_times = [t.strftime("%Y-%m-%dT%H:%M:%S") + "Z" for t in time_objects]
 
     # Get variables as numpy arrays to avoid repeated access
     temp_array = instant_data.variables["t2m"][:]
@@ -74,10 +78,14 @@ def convert(session: Session,
                 session.add_all(weather_values)
                 session.commit()
                 weather_values = []
-                print(f"Committed {batch_size} records. Total processed: {total_records}")
+                print(
+                    f"Committed {batch_size} records. Total processed: {total_records}"
+                )
 
     # Add any remaining weather values
     if weather_values:
         session.add_all(weather_values)
         session.commit()
-        print(f"Final commit: {len(weather_values)} records. Total processed: {total_records}")
+        print(
+            f"Final commit: {len(weather_values)} records. Total processed: {total_records}"
+        )

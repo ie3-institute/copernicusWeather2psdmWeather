@@ -1,6 +1,7 @@
 """
 Logging setup utilities.
 """
+
 import logging
 from pathlib import Path
 
@@ -16,7 +17,7 @@ def setup_logging(log_level=logging.INFO, log_file=None):
     Returns:
         Logger: Configured logger
     """
-    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     handlers = [logging.StreamHandler()]
 
     if log_file:
@@ -28,6 +29,6 @@ def setup_logging(log_level=logging.INFO, log_file=None):
         level=log_level,
         format=log_format,
         handlers=handlers,
-        force=True  # Force reconfiguration of the root logger
+        force=True,  # Force reconfiguration of the root logger
     )
     return logging.getLogger(__name__)

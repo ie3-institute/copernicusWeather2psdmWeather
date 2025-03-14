@@ -1,9 +1,10 @@
-from weather.models import Coordinate
-import pandas as pd
-
 import numpy as np
+import pandas as pd
 from netCDF4 import Dataset
 from sqlmodel import Session
+
+from weather.models import Coordinate
+
 
 def create_coordinates_df(weather: Dataset, session: Session):
     # Extract coordinates
@@ -19,11 +20,13 @@ def create_coordinates_df(weather: Dataset, session: Session):
     latlons_idx = np.array(np.meshgrid(lats_idx, lons_idx)).T.reshape(-1, 2)
 
     # Create DataFrame
-    latlons_df = pd.DataFrame({
-        "latitude": latlons[:, 0],
-        "longitude": latlons[:, 1],
-        "idx": [tuple(idx) for idx in latlons_idx]
-    })
+    latlons_df = pd.DataFrame(
+        {
+            "latitude": latlons[:, 0],
+            "longitude": latlons[:, 1],
+            "idx": [tuple(idx) for idx in latlons_idx],
+        }
+    )
 
     # Bulk create coordinates
     coordinates = []
@@ -32,7 +35,7 @@ def create_coordinates_df(weather: Dataset, session: Session):
             id=i,
             latitude=row["latitude"],
             longitude=row["longitude"],
-            coordinate_type="ICON"
+            coordinate_type="ICON",
         )
         coordinates.append(coordinate)
 

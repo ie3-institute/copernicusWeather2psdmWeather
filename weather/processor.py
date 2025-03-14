@@ -1,13 +1,17 @@
 """
 Main weather data processing functionality.
 """
-import os
+
 import logging
+import os
+
 from netCDF4 import Dataset
 from sqlmodel import Session
+
 from coordinates.coordinates import create_coordinates_df
 from weather.convert import convert
 from weather.database import create_database_and_tables, engine
+
 from .timer import timer
 
 logger = logging.getLogger(__name__)
@@ -34,10 +38,14 @@ def process_weather_data(input_dir, file_name_base, batch_size=1000):
     instant_file_path = os.path.join(input_dir, instant_file_name)
 
     # Validate input files exist
-    for file_path, file_desc in [(accum_file_path, "accumulated data"),
-                                 (instant_file_path, "instant data")]:
+    for file_path, file_desc in [
+        (accum_file_path, "accumulated data"),
+        (instant_file_path, "instant data"),
+    ]:
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"NetCDF file for {file_desc} not found: {file_path}")
+            raise FileNotFoundError(
+                f"NetCDF file for {file_desc} not found: {file_path}"
+            )
 
     with Session(engine) as session:
         with timer("Database initialization"):
@@ -45,7 +53,9 @@ def process_weather_data(input_dir, file_name_base, batch_size=1000):
             logger.info("Database and tables created successfully")
 
         with timer("Loading NetCDF files"):
-            logger.info(f"Opening NetCDF files: {accum_file_name} and {instant_file_name}")
+            logger.info(
+                f"Opening NetCDF files: {accum_file_name} and {instant_file_name}"
+            )
             accum_data = Dataset(accum_file_path, "r", format="NETCDF4")
             instant_data = Dataset(instant_file_path, "r", format="NETCDF4")
 
@@ -55,7 +65,9 @@ def process_weather_data(input_dir, file_name_base, batch_size=1000):
 
         with timer("Creating coordinates"):
             coordinates_dict = create_coordinates_df(instant_data, session)
-            logger.info(f"Created coordinates dictionary with {len(coordinates_dict)} entries")
+            logger.info(
+                f"Created coordinates dictionary with {len(coordinates_dict)} entries"
+            )
             session.commit()
             logger.info("Coordinates committed to database")
 
