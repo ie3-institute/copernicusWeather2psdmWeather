@@ -27,9 +27,6 @@ class Coordinate(SQLModel, table=True):
 class WeatherValue(SQLModel, table=True):
     """Represents weather data associated with a specific coordinate at a given time."""
 
-    # time: datetime = Field(default=None, primary_key=True)
-    # tmp_time = datetime(year=1900, month=1, day=1, tzinfo=pytz.UTC)
-    # UWAGA TODO: change this to timestamp with time zone! else change it manually in created database! -> For later export from sql to csv everything should be fine. For direct use of Weather from sql this needs to be checked!
     time: str = Field(default=None, primary_key=True)
     coordinate_id: int = Field(
         default=None, primary_key=True, foreign_key="coordinate.id"
