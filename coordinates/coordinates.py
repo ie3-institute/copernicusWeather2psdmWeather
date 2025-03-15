@@ -22,7 +22,9 @@ def create_coordinates_df(weather: Dataset, session: Session):
     # Create DataFrame
     latlons_df = pd.DataFrame(
         {
-            "coordinate": [f"({lon},{lat})" for lat, lon in zip(latlons[:, 0], latlons[:, 1])],
+            "coordinate": [
+                f"({lon},{lat})" for lat, lon in zip(latlons[:, 0], latlons[:, 1])
+            ],
             "idx": [tuple(idx) for idx in latlons_idx],
         }
     )

@@ -13,7 +13,7 @@ class Coordinates(SQLModel, table=True):
 
     def __eq__(self, other):
         if isinstance(other, Coordinates):
-            return (self.coordinate == other.coordinate)
+            return self.coordinate == other.coordinate
         return NotImplemented
 
     def __hash__(self):
