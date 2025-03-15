@@ -1,9 +1,10 @@
-from sqlmodel import SQLModel, Field
-from sqlalchemy import Column
+from typing import Optional
+
 from geoalchemy2 import Geography
 from geoalchemy2.elements import WKBElement
-from typing import Optional
 from pydantic import ConfigDict
+from sqlalchemy import Column
+from sqlmodel import Field, SQLModel
 
 
 class Coordinates(SQLModel, table=True):
@@ -17,7 +18,7 @@ class Coordinates(SQLModel, table=True):
     # Use WKBElement type with the Geography column
     coordinate: WKBElement = Field(
         sa_column=Column(
-            Geography(geometry_type='POINT', srid=4326, spatial_index=False)
+            Geography(geometry_type="POINT", srid=4326, spatial_index=False)
         )
     )
 
@@ -26,6 +27,7 @@ class Coordinates(SQLModel, table=True):
         """Get latitude value using PostGIS functions."""
         if self.coordinate is not None and session is not None:
             from sqlalchemy import func
+
             return session.scalar(func.ST_Y(func.ST_GeogFromWKB(self.coordinate)))
         return None
 
@@ -33,6 +35,7 @@ class Coordinates(SQLModel, table=True):
         """Get longitude value using PostGIS functions."""
         if self.coordinate is not None and session is not None:
             from sqlalchemy import func
+
             return session.scalar(func.ST_X(func.ST_GeogFromWKB(self.coordinate)))
         return None
 
