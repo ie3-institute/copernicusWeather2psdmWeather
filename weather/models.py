@@ -4,20 +4,16 @@ from sqlmodel import Field, SQLModel
 Base = declarative_base()
 
 
-# FIXME: This can be changed to from lat lon to POINTS, then the SqlWeatherCoordinateSource can be used in SIMONA which is a bit faster
-class Coordinate(SQLModel, table=True):
+class Coordinates(SQLModel, table=True):
     """Represents a geographical coordinate."""
 
     id: int = Field(default=None, primary_key=True)
-    latitude: float
-    longitude: float
+    coordinate: str
     coordinate_type: str
 
     def __eq__(self, other):
-        if isinstance(other, Coordinate):
-            return (self.latitude == other.latitude) and (
-                self.longitude == other.longitude
-            )
+        if isinstance(other, Coordinates):
+            return (self.coordinate == other.coordinate)
         return NotImplemented
 
     def __hash__(self):
@@ -29,7 +25,7 @@ class WeatherValue(SQLModel, table=True):
 
     time: str = Field(default=None, primary_key=True)
     coordinate_id: int = Field(
-        default=None, primary_key=True, foreign_key="coordinate.id"
+        default=None, primary_key=True, foreign_key="coordinates.id"
     )
 
     # Diffuse irradiance in W/m²

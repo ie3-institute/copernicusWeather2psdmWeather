@@ -3,7 +3,7 @@ import pandas as pd
 from netCDF4 import Dataset
 from sqlmodel import Session
 
-from weather.models import Coordinate
+from weather.models import Coordinates
 
 
 def create_coordinates_df(weather: Dataset, session: Session):
@@ -22,8 +22,7 @@ def create_coordinates_df(weather: Dataset, session: Session):
     # Create DataFrame
     latlons_df = pd.DataFrame(
         {
-            "latitude": latlons[:, 0],
-            "longitude": latlons[:, 1],
+            "coordinate": [f"({lon},{lat})" for lat, lon in zip(latlons[:, 0], latlons[:, 1])],
             "idx": [tuple(idx) for idx in latlons_idx],
         }
     )
@@ -31,10 +30,9 @@ def create_coordinates_df(weather: Dataset, session: Session):
     # Bulk create coordinates
     coordinates = []
     for i, row in latlons_df.iterrows():
-        coordinate = Coordinate(
+        coordinate = Coordinates(
             id=i,
-            latitude=row["latitude"],
-            longitude=row["longitude"],
+            coordinate=row["coordinate"],
             coordinate_type="ICON",
         )
         coordinates.append(coordinate)
