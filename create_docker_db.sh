@@ -1,1 +1,1 @@
-docker run --name westfalia_2024_06_01-2024_06_07-ecmfw -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=westfalia_2024_06_01-2024_06_07-ecmfw -v C:\docker\westfalia_2024_06_01-2024_06_07-ecmfw/var/lib/postgresql/data -p 5432:5432 -d postgres
+docker run --name westfalia_2024_06_01-2024_06_07-ecmfw -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=westfalia_2024_06_01-2024_06_07-ecmfw -v C:\docker\westfalia_2024_06_01-2024_06_07-ecmfw:/var/lib/postgresql/data -p 5432:5432 -d postgis/postgis:17-3.4
