@@ -50,7 +50,7 @@ class Coordinate(SQLModel, table=True):
 
 class WeatherValue(SQLModel, table=True):
     """Represents weather data associated with a specific coordinate at a given time."""
-
+    # FIXME could be removed with pypsdm 0.0.4
     time: str = Field(default=None, primary_key=True)
     coordinate_id: int = Field(
         default=None, primary_key=True, foreign_key="coordinate.id"
