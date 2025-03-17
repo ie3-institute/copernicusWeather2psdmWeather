@@ -7,7 +7,7 @@ from sqlalchemy import Column
 from sqlmodel import Field, SQLModel
 
 
-class Coordinates(SQLModel, table=True):
+class Coordinate(SQLModel, table=True):
     """Represents a geographical coordinate."""
 
     # Allow arbitrary types in model configuration
@@ -40,7 +40,7 @@ class Coordinates(SQLModel, table=True):
         return None
 
     def __eq__(self, other):
-        if isinstance(other, Coordinates):
+        if isinstance(other, Coordinate):
             return self.coordinate == other.coordinate
         return NotImplemented
 
@@ -53,7 +53,7 @@ class WeatherValue(SQLModel, table=True):
 
     time: str = Field(default=None, primary_key=True)
     coordinate_id: int = Field(
-        default=None, primary_key=True, foreign_key="coordinates.id"
+        default=None, primary_key=True, foreign_key="coordinate.id"
     )
 
     # Diffuse irradiance in W/m²
