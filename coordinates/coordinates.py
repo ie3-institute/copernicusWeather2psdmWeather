@@ -3,7 +3,7 @@ import pandas as pd
 from netCDF4 import Dataset
 from sqlmodel import Session
 
-from weather.models import Coordinates
+from weather.models import Coordinate
 
 
 def create_coordinates_df(weather: Dataset, session: Session):
@@ -33,7 +33,7 @@ def create_coordinates_df(weather: Dataset, session: Session):
     # Bulk create coordinates
     coordinates = []
     for i, row in latlons_df.iterrows():
-        coordinate = Coordinates(
+        coordinate = Coordinate(
             id=i,
             coordinate=row["coordinate"],
         )
