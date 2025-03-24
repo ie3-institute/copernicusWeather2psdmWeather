@@ -23,8 +23,8 @@ def create_coordinates_df(weather: Dataset, session: Session):
     latlons_df = pd.DataFrame(
         {
             "coordinate": [
-                Coordinate.from_xy(idx[0], lon, lat).coordinate
-                for idx, (lat, lon) in zip(latlons_idx, latlons)
+                f"POINT({lon} {lat})"  # WKT format for PostGIS: POINT(longitude latitude)
+                for lat, lon in zip(latlons[:, 0], latlons[:, 1])
             ],
             "idx": [tuple(idx) for idx in latlons_idx],
         }
