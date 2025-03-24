@@ -1,47 +1,32 @@
-import binascii
 from datetime import datetime
-from typing import Any, ClassVar, Dict
 
-from geoalchemy2 import Geometry, WKBElement
 from shapely import Point
-from shapely.geometry.base import BaseGeometry
-from shapely.wkb import dumps, loads
-from sqlalchemy import Column
+from shapely.wkb import loads
+from sqlalchemy import Column, LargeBinary
 from sqlmodel import Field, SQLModel
 
 #Todo: can be used from pypsdm.db.weather.models after release
 class Coordinate(SQLModel, table=True):
     """Represents a geographical coordinate."""
 
-    model_config: ClassVar[Dict[str, Any]] = {"arbitrary_types_allowed": True}
-
     id: int = Field(default=None, primary_key=True)
-
-    # Use Geometry for storing WKB data (binary format)
-    coordinate: WKBElement = Field(
-        sa_column=Column(
-            Geometry(geometry_type="POINT", srid=4326, from_text="ST_GeomFromWKB")
-        )
-    )
-
-    def __init__(self, id: int, coordinate: Geometry):
-        self.id = id
-        self.coordinate = coordinate
+    coordinate: bytes = Column(LargeBinary)
 
     def __eq__(self, other):
-        return self.id == other.id if isinstance(other, Coordinate) else NotImplemented
+        return self.id == other.id
 
     def __hash__(self):
         return hash(self.id)
 
     @property
-    def point(self) -> BaseGeometry:
-        if isinstance(self.coordinate, WKBElement):
-            wkb_str = str(self.coordinate)
-            coordinate = bytes.fromhex(wkb_str)
+    def point(self) -> Point:
+        wkb_data = self.coordinate
+        geom = loads(wkb_data)
+
+        if isinstance(geom, Point):
+            return geom
         else:
-            coordinate = self.coordinate
-        return loads(coordinate)
+            raise ValueError("Geometry is not a point")
 
     @property
     def latitude(self) -> float:
@@ -61,14 +46,9 @@ class Coordinate(SQLModel, table=True):
 
     @staticmethod
     def from_xy(id: int, x: float, y: float) -> "Coordinate":
-        point = Point(x, y)
-        wkb_data = dumps(point)
-        return Coordinate(id=id, coordinate=wkb_data)
+        wkb = Point(x, y).wkb
+        return Coordinate(id=id, coordinate=wkb)
 
-    @staticmethod
-    def from_hex(id: int, wkb_hex: str) -> "Coordinate":
-        bytes = binascii.unhexlify(wkb_hex)
-        return Coordinate(id=id, coordinate=bytes)
 
 
 class WeatherValue(SQLModel, table=True):
