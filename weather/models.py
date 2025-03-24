@@ -1,16 +1,29 @@
 from datetime import datetime
+from typing import Any, ClassVar, Dict
 
+from geoalchemy2 import Geometry, WKBElement
 from shapely import Point
-from shapely.wkb import loads
-from sqlalchemy import Column, LargeBinary
+from shapely.wkb import dumps, loads
+from sqlalchemy import Column
 from sqlmodel import Field, SQLModel
 
 #Todo: can be used from pypsdm.db.weather.models after release
 class Coordinate(SQLModel, table=True):
     """Represents a geographical coordinate."""
 
+    model_config: ClassVar[Dict[str, Any]] = {"arbitrary_types_allowed": True}
+
     id: int = Field(default=None, primary_key=True)
-    coordinate: bytes = Column(LargeBinary)
+
+    coordinate: Geometry = Field(
+        sa_column=Column(
+            Geometry(geometry_type="POINT", srid=4326, from_text="ST_GeomFromWKB")
+        )
+    )
+
+    def __init__(self, id: int, coordinate: Geometry):
+        self.id = id
+        self.coordinate = coordinate
 
     def __eq__(self, other):
         return self.id == other.id
@@ -20,13 +33,12 @@ class Coordinate(SQLModel, table=True):
 
     @property
     def point(self) -> Point:
-        wkb_data = self.coordinate
-        geom = loads(wkb_data)
-
-        if isinstance(geom, Point):
-            return geom
+        if isinstance(self.coordinate, WKBElement):
+            wkb_str = str(self.coordinate)
+            coordinate = bytes.fromhex(wkb_str)
         else:
-            raise ValueError("Geometry is not a point")
+            coordinate = self.coordinate
+        return loads(coordinate)
 
     @property
     def latitude(self) -> float:
@@ -46,10 +58,9 @@ class Coordinate(SQLModel, table=True):
 
     @staticmethod
     def from_xy(id: int, x: float, y: float) -> "Coordinate":
-        wkb = Point(x, y).wkb
-        return Coordinate(id=id, coordinate=wkb)
-
-
+        point = Point(x, y)
+        wkb_data = dumps(point)
+        return Coordinate(id=id, coordinate=wkb_data)
 
 class WeatherValue(SQLModel, table=True):
     """
