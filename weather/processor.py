@@ -4,14 +4,16 @@ Main weather data processing functionality.
 
 import logging
 import os
+import time
 
+import sqlalchemy
 from netCDF4 import Dataset
+from sqlalchemy import text
 from sqlmodel import Session
 
 from coordinates.coordinates import create_coordinates_df
 from weather.convert import convert
 from weather.database import create_database_and_tables, engine
-
 from .db_migration import migrate_time_column
 from .timer import timer
 
@@ -52,8 +54,30 @@ def process_weather_data(
 
     with Session(engine) as session:
         with timer("Database initialization"):
-            create_database_and_tables()
-            logger.info("Database and tables created successfully")
+            max_retries = 5
+            retry_delay = 1  # seconds
+            for attempt in range(max_retries):
+                try:
+                    # Enable PostGIS
+                    with engine.connect() as conn:
+                        conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+                        conn.commit()
+
+                    create_database_and_tables()
+                    logger.info("Database and tables created successfully")
+                    break
+
+                except sqlalchemy.exc.OperationalError as e:
+                    if attempt < max_retries - 1:
+                        print(
+                            f"Connection attempt {attempt + 1} failed. Retrying in {retry_delay}s..."
+                        )
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # Exponential backoff
+                    else:
+                        raise Exception(
+                            f"Failed to connect after {max_retries} attempts"
+                        ) from e
 
         with timer("Loading NetCDF files"):
             logger.info(
