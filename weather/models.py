@@ -1,23 +1,27 @@
 from datetime import datetime
-from typing import Any, ClassVar, Dict
 
-from geoalchemy2 import Geometry, WKBElement
-from shapely import Point
-from shapely.wkb import dumps, loads
+from geoalchemy2 import Geography
+from geoalchemy2.elements import WKBElement
+from pydantic import ConfigDict
+from shapely import Geometry
+from shapely.geometry.point import Point
+from shapely.wkb import loads, dumps
 from sqlalchemy import Column
 from sqlmodel import Field, SQLModel
 
-#Todo: can be used from pypsdm.db.weather.models after release
+
 class Coordinate(SQLModel, table=True):
     """Represents a geographical coordinate."""
 
-    model_config: ClassVar[Dict[str, Any]] = {"arbitrary_types_allowed": True}
+    # Allow arbitrary types in model configuration
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     id: int = Field(default=None, primary_key=True)
 
-    coordinate: Geometry = Field(
+    # Use WKBElement type with the Geography column
+    coordinate: WKBElement = Field(
         sa_column=Column(
-            Geometry(geometry_type="POINT", srid=4326, from_text="ST_GeomFromWKB")
+            Geography(geometry_type="POINT", srid=4326, spatial_index=False)
         )
     )
 
@@ -59,8 +63,7 @@ class Coordinate(SQLModel, table=True):
     @staticmethod
     def from_xy(id: int, x: float, y: float) -> "Coordinate":
         point = Point(x, y)
-        wkb_data = dumps(point)
-        return Coordinate(id=id, coordinate=wkb_data)
+        return Coordinate(id=id, coordinate=point)
 
 class WeatherValue(SQLModel, table=True):
     """
