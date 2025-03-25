@@ -13,13 +13,20 @@ def create_coordinates_df(weather: Dataset, session: Session):
 
     # Create coordinate meshgrids and their indices
     latlons = np.array(np.meshgrid(lats, lons)).T.reshape(-1, 2)
-    latlons_idx = np.array(np.meshgrid(np.arange(len(lats)), np.arange(len(lons)))).T.reshape(-1, 2)
+    latlons_idx = np.array(
+        np.meshgrid(np.arange(len(lats)), np.arange(len(lons)))
+    ).T.reshape(-1, 2)
 
     # Create DataFrame with coordinates and indices
-    latlons_df = pd.DataFrame({
-        "coordinate": [Coordinate.from_xy(idx, lon, lat).coordinate for idx, (lat, lon) in zip(latlons_idx, latlons)],
-        "idx": [tuple(idx) for idx in latlons_idx],
-    })
+    latlons_df = pd.DataFrame(
+        {
+            "coordinate": [
+                Coordinate.from_xy(idx, lon, lat).coordinate
+                for idx, (lat, lon) in zip(latlons_idx, latlons)
+            ],
+            "idx": [tuple(idx) for idx in latlons_idx],
+        }
+    )
 
     # Bulk create coordinates and add to session
     coordinates = [

@@ -14,6 +14,7 @@ from sqlmodel import Session
 from coordinates.coordinates import create_coordinates_df
 from weather.convert import convert
 from weather.database import create_database_and_tables, engine
+
 from .db_migration import migrate_time_column
 from .timer import timer
 

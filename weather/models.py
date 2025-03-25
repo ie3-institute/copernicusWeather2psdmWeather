@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, ClassVar, Dict
 
-from geoalchemy2 import Geometry, WKBElement, Geography
+from geoalchemy2 import Geography, WKBElement
 from shapely import Point
 from shapely.wkb import loads
 from sqlalchemy import Column
@@ -90,9 +90,6 @@ class Coordinate(SQLModel, table=True):
     def __hash__(self):
         return hash(self.id)
 
-
-
-
     @property
     def point(self) -> Point:
         return loads(ensure_bytes(self.coordinate))
@@ -118,4 +115,3 @@ class Coordinate(SQLModel, table=True):
         point = Point(x, y)
         wkb = WKBElement(point.wkb, srid=4326)
         return Coordinate(id, wkb)
-
