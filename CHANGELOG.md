@@ -11,5 +11,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
-
+- Fixed implementation of dependabot auto-merge feature [#14](https://github.com/ie3-institute/copernicusWeather2psdmWeather/issues/14)
 ### Removed
