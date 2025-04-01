@@ -177,19 +177,19 @@ develop = ["build", "twine"]
 
 [[package]]
 name = "flake8-isort"
-version = "6.0.0"
-description = "flake8 plugin that integrates isort ."
+version = "6.1.2"
+description = "flake8 plugin that integrates isort"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "flake8-isort-6.0.0.tar.gz", hash = "sha256:537f453a660d7e903f602ecfa36136b140de279df58d02eb1b6a0c84e83c528c"},
-    {file = "flake8_isort-6.0.0-py3-none-any.whl", hash = "sha256:aa0cac02a62c7739e370ce6b9c31743edac904bae4b157274511fc8a19c75bbc"},
+    {file = "flake8_isort-6.1.2-py3-none-any.whl", hash = "sha256:549197dedf0273502fb74f04c080beed9e62a7eb70244610413d27052e78bd3b"},
+    {file = "flake8_isort-6.1.2.tar.gz", hash = "sha256:9d0452acdf0e1cd6f2d6848e3605e66b54d920e73471fb4744eef0f93df62d5d"},
 ]
 
 [package.dependencies]
 flake8 = "*"
-isort = ">=5.0.0,<6"
+isort = ">=5.0.0,<7"
 
 [package.extras]
 test = ["pytest"]
@@ -518,4 +518,4 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "7de901edb8a1a320c4cf232b5bec427a46f4a6153ee3c0347b7b3b8fbfd5b226"
+content-hash = "99f48cf8415fe94da0546aea5bef63f3487fbb26060615ec474819186575efcb"
