@@ -7,9 +7,9 @@ authors = ["Thomas Oberliessen <thomas.oberliessen@googlemail.com>",
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">3.11, <3.12"
+python = ">3.11, <3.13"
 netcdf4 = ">1.5.1 <2.0"
-pypsdm = "^0.0.3"
+pypsdm = "^0.0.4"
 geoalchemy2 = "^0.17.1"
 psycopg2 = "^2.9.10"
 
