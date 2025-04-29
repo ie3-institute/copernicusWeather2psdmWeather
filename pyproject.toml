@@ -7,7 +7,8 @@ authors = ["Thomas Oberliessen <thomas.oberliessen@googlemail.com>",
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python =  ">3.11,<3.13"
+pypsdm = "^0.0.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
