@@ -60,13 +60,16 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libpq-dev
+          sudo apt-get install -y libpq-dev postgresql postgresql-contrib
+
       - name: Install PostgreSQL (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install libpq
-          echo 'export PATH="/usr/local/opt/libpq/bin:$PATH"' >> ~/.bash_profile
-          export PATH="/usr/local/opt/libpq/bin:$PATH"
+          brew install postgresql@14
+          brew link --force postgresql@14
+          export PATH="/usr/local/opt/postgresql@14/bin:$PATH"
+          echo 'export PATH="/usr/local/opt/postgresql@14/bin:$PATH"' >> ~/.bash_profile
+
       #----------------------------------------------
       #  -----  install & configure poetry  -----
       #----------------------------------------------
@@ -75,6 +78,15 @@ jobs:
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
+
+      #----------------------------------------------
+      #       Modify pyproject.toml for CI
+      #----------------------------------------------
+      - name: Modify pyproject.toml for CI
+        run: |
+          sed -i.bak 's/psycopg2 = "^2.9.10"/psycopg2-binary = "^2.9.10"/' pyproject.toml
+          cat pyproject.toml
+
       #----------------------------------------------
       #       load cached venv if cache exists
       #----------------------------------------------
