@@ -54,6 +54,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       #----------------------------------------------
+      #       Install PostgreSQL dependencies
+      #----------------------------------------------
+      - name: Install PostgreSQL (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
+      - name: Install PostgreSQL (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install libpq
+          echo 'export PATH="/usr/local/opt/libpq/bin:$PATH"' >> ~/.bash_profile
+          export PATH="/usr/local/opt/libpq/bin:$PATH"
+      #----------------------------------------------
       #  -----  install & configure poetry  -----
       #----------------------------------------------
       - name: Install Poetry
