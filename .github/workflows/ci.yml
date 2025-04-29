@@ -54,6 +54,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       #----------------------------------------------
+      #   Install PostgreSQL development package
+      #----------------------------------------------
+      - name: Install PostgreSQL Development Packages (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update &;&; sudo apt-get install -y libpq-dev
+      #----------------------------------------------
       #  -----  install & configure poetry  -----
       #----------------------------------------------
       - name: Install Poetry
