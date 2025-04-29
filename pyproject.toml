@@ -9,7 +9,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python =  ">3.11,<3.13"
 pypsdm = "^0.0.6"
-psycopg2-binary = "^2.9.10"
+psycopg2 = "^2.9.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
