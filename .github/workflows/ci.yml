@@ -78,6 +78,13 @@ jobs:
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
+          version: 1.6.1
+
+      #----------------------------------------------
+      #       Check Poetry version
+      #----------------------------------------------
+      - name: Check Poetry version
+        run: poetry --version
 
       #----------------------------------------------
       #       Modify pyproject.toml for CI
@@ -102,7 +109,8 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
-          poetry lock --no-update
+          # Try with --no-update, fallback if not supported
+          poetry lock --no-update || poetry lock
           poetry install --no-root --no-interaction
       #----------------------------------------------
       #    run test suite
