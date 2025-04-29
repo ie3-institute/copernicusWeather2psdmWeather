@@ -10,33 +10,28 @@ def create_coordinates_df(weather: Dataset, session: Session):
     lats = np.asarray(weather.variables["latitude"])
     lons = np.asarray(weather.variables["longitude"])
 
-    # Create meshgrids
-    lats_idx = np.arange(len(lats))
-    lons_idx = np.arange(len(lons))
-
-    # Create coordinate meshgrids
+    # Create coordinate meshgrids and their indices
     latlons = np.array(np.meshgrid(lats, lons)).T.reshape(-1, 2)
-    latlons_idx = np.array(np.meshgrid(lats_idx, lons_idx)).T.reshape(-1, 2)
+    latlons_idx = np.array(
+        np.meshgrid(np.arange(len(lats)), np.arange(len(lons)))
+    ).T.reshape(-1, 2)
 
-    # Create DataFrame
+    # Create DataFrame with coordinates and indices
     latlons_df = pd.DataFrame(
         {
             "coordinate": [
-                f"POINT({lon} {lat})"  # WKT format for PostGIS: POINT(longitude latitude)
-                for lat, lon in zip(latlons[:, 0], latlons[:, 1])
+                Coordinate.from_xy(idx, lon, lat).coordinate
+                for idx, (lat, lon) in zip(latlons_idx, latlons)
             ],
             "idx": [tuple(idx) for idx in latlons_idx],
         }
     )
 
-    # Bulk create coordinates
-    coordinates = []
-    for i, row in latlons_df.iterrows():
-        coordinate = Coordinate(
-            id=i,
-            coordinate=row["coordinate"],
-        )
-        coordinates.append(coordinate)
+    # Bulk create coordinates and add to session
+    coordinates = [
+        Coordinate(id=i, coordinate=row["coordinate"])
+        for i, row in latlons_df.iterrows()
+    ]
 
     session.add_all(coordinates)
     session.commit()

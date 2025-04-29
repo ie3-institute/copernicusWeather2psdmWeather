@@ -60,7 +60,7 @@ def convert(
 
             # Create WeatherValue object
             weather_value = WeatherValue(
-                time=time_value,
+                time=datetime.strptime(time_value, "%Y-%m-%dT%H:%M:%SZ"),
                 coordinate_id=coordinate_id,
                 aswdifd_s=(influx_total - fDir) / 3600,  # Difference of ssdr - fDir
                 aswdir_s=fDir / 3600,  # J/m² in Wh/m²
