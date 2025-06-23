@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
 from netCDF4 import Dataset
+from pypsdm.db.weather.models import Coordinate
 from sqlmodel import Session
-
-from weather.models import Coordinate
 
 
 def create_coordinates_df(weather: Dataset, session: Session):

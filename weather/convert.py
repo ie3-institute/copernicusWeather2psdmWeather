@@ -2,9 +2,8 @@ from datetime import datetime
 
 import pytz
 from netCDF4 import Dataset, num2date
+from pypsdm.db.weather.models import WeatherValue
 from sqlmodel import Session
-
-from weather.models import WeatherValue
 
 # Correct base time: 1970-01-01 for "seconds since 1970-01-01"
 BASE_TIME = datetime(year=1970, month=1, day=1, tzinfo=pytz.utc)
