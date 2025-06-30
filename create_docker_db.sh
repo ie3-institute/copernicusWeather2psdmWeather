@@ -1,0 +1,1 @@
+docker run --name gribweather2days -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=gribweather2days -v C:\docker\gribweather2days/var/lib/postgresql/data -p 5432:5432 -d postgis/postgis:17-3.4
