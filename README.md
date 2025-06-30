@@ -2,6 +2,13 @@
 
 Converts [copernicus.eu](https://cds.climate.copernicus.eu/) netCDF4 weather data to [PowerSystemDataModel](https://github.com/ie3-institute/PowerSystemDataModel) weather data format.
 
+## Quick start
+
+```
+python main.py inspect-grib
+```
+
+
 ## Something Missing? 
 
 We are happy to learn about additional tools for easing the developer workflow. 

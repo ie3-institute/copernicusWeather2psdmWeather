@@ -10,6 +10,10 @@ readme = "README.md"
 python =  ">3.11,<3.13"
 pypsdm = "^0.0.6"
 psycopg2 = "^2.9.10"
+cfgrib = "^0.9.15.0"
+xarray = "^2025.6.1"
+eccodes = "^2.42.0"
+pyarrow = "^20.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
