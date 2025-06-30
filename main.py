@@ -2,18 +2,17 @@
 """
 Utility script for processing weather data from GRIB and NetCDF files.
 """
-
 import argparse
 import sys
 from pathlib import Path
-
-# Add the parent directory to the path to import our modules
-sys.path.append(str(Path(__file__).parent.parent))
 
 from weather.config import load_config
 from weather.convert import inspect_grib_file
 from weather.logging_setup import setup_logging
 from weather.processor import process_weather_data
+
+# Add the parent directory to the path to import our modules
+sys.path.append(str(Path(__file__).parent.parent))
 
 
 def parse_arguments():
@@ -116,9 +115,6 @@ def main():
                 args.batch_size
                 if args.batch_size is not None
                 else config.get("batch_size", 1000)
-            )
-            log_file = (
-                args.log_file if args.log_file is not None else config.get("log_file")
             )
 
             perform_migration = True

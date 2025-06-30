@@ -348,26 +348,26 @@ def inspect_grib_file(grib_file_path):
     try:
         ds = xr.open_dataset(grib_file_path, engine="cfgrib")
 
-        print(f"\n=== GRIB File Structure ===")
-        print(f"File: {grib_file_path}")
-        print(f"\nDimensions:")
+        print("\n=== GRIB File Structure ===")
+        print("File: {grib_file_path}")
+        print("\nDimensions:")
         for dim, size in ds.dims.items():
             print(f"  {dim}: {size}")
 
-        print(f"\nCoordinates:")
+        print("\nCoordinates:")
         for coord in ds.coords:
             print(
                 f"  {coord}: {ds[coord].shape} - {ds[coord].long_name if 'long_name' in ds[coord].attrs else 'No description'}"
             )
 
-        print(f"\nData Variables:")
+        print("\nData Variables:")
         for var in ds.data_vars:
             attrs = ds[var].attrs
             long_name = attrs.get("long_name", "No description")
             units = attrs.get("units", "No units")
             print(f"  {var}: {ds[var].shape} - {long_name} ({units})")
 
-        print(f"\nGlobal Attributes:")
+        print("\nGlobal Attributes:")
         for attr, value in ds.attrs.items():
             print(f"  {attr}: {value}")
 

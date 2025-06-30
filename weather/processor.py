@@ -50,7 +50,7 @@ def detect_file_format(file_path):
             ds = Dataset(file_path, "r")
             ds.close()
             return "netcdf"
-        except:
+        except OSError:
             try:
                 # Try opening as GRIB
                 import pygrib
@@ -58,7 +58,7 @@ def detect_file_format(file_path):
                 grbs = pygrib.open(file_path)
                 grbs.close()
                 return "grib"
-            except:
+            except (IOError, ValueError):
                 return "unknown"
 
 
