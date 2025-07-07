@@ -19,9 +19,7 @@ def load_config(config_path="config.yaml"):
         dict: Configuration with resolved paths
     """
     if not os.path.exists(config_path):
-        print(
-            f"Configuration file {config_path} not found. Using default values."
-        )
+        print(f"Configuration file {config_path} not found. Using default values.")
         return {
             "ROOT_DIR": str(Path.cwd()),
             "input_dir": str(Path.cwd() / "input"),

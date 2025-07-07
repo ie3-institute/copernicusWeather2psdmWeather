@@ -17,6 +17,7 @@ from weather.database import create_database_and_tables, engine
 from .db_migration import migrate_time_column
 from .timer import timer
 
+
 def process_weather_data(
     input_dir, file_name_base, batch_size=1000, perform_migration=True
 ):
@@ -77,9 +78,7 @@ def process_weather_data(
                         ) from e
 
         with timer("Loading NetCDF files"):
-            print(
-                f"Opening NetCDF files: {accum_file_name} and {instant_file_name}"
-            )
+            print(f"Opening NetCDF files: {accum_file_name} and {instant_file_name}")
             accum_data = Dataset(accum_file_path, "r", format="NETCDF4")
             instant_data = Dataset(instant_file_path, "r", format="NETCDF4")
 

@@ -5,6 +5,7 @@ Performance timing utilities.
 import time
 from contextlib import contextmanager
 
+
 @contextmanager
 def timer(description):
     """

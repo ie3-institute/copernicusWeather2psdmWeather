@@ -61,9 +61,7 @@ def main():
         print(f"Using input directory: {input_dir}")
         print(f"Using file name base: {file_name_base}")
         print(f"Using batch size: {batch_size}")
-        print(
-            f"Database migration: {'Enabled' if perform_migration else 'Disabled'}"
-        )
+        print(f"Database migration: {'Enabled' if perform_migration else 'Disabled'}")
 
         print("Starting weather data processing")
         process_weather_data(input_dir, file_name_base, batch_size, perform_migration)

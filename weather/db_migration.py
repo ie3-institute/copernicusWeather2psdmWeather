@@ -8,6 +8,7 @@ from weather.database import engine
 
 from .timer import timer
 
+
 def migrate_time_column():
     """
     Migrate weathervalue table to convert the time column from string to timestamptz.
@@ -66,9 +67,7 @@ def migrate_time_column():
             # Execute each SQL statement
             with engine.begin() as conn:
                 for i, sql in enumerate(migration_steps):
-                    print(
-                        f"Executing migration step {i + 1}/{len(migration_steps)}"
-                    )
+                    print(f"Executing migration step {i + 1}/{len(migration_steps)}")
                     conn.execute(text(sql))
 
             print("Database migration completed successfully")
