@@ -2,7 +2,6 @@
 Main weather data processing functionality.
 """
 
-import logging
 import os
 import time
 
@@ -17,9 +16,6 @@ from weather.database import create_database_and_tables, engine
 
 from .db_migration import migrate_time_column
 from .timer import timer
-
-logger = logging.getLogger(__name__)
-
 
 def process_weather_data(
     input_dir, file_name_base, batch_size=1000, perform_migration=True
@@ -65,7 +61,7 @@ def process_weather_data(
                         conn.commit()
 
                     create_database_and_tables()
-                    logger.info("Database and tables created successfully")
+                    print("Database and tables created successfully")
                     break
 
                 except sqlalchemy.exc.OperationalError as e:
@@ -81,29 +77,29 @@ def process_weather_data(
                         ) from e
 
         with timer("Loading NetCDF files"):
-            logger.info(
+            print(
                 f"Opening NetCDF files: {accum_file_name} and {instant_file_name}"
             )
             accum_data = Dataset(accum_file_path, "r", format="NETCDF4")
             instant_data = Dataset(instant_file_path, "r", format="NETCDF4")
 
-            # Log dataset information
-            logger.info(f"Accumulated data dimensions: {accum_data.dimensions}")
-            logger.info(f"Instant data dimensions: {instant_data.dimensions}")
+            # Print dataset information
+            print(f"Accumulated data dimensions: {accum_data.dimensions}")
+            print(f"Instant data dimensions: {instant_data.dimensions}")
 
         with timer("Creating coordinates"):
             coordinates_dict = create_coordinates_df(instant_data, session)
-            logger.info(
+            print(
                 f"Created coordinates dictionary with {len(coordinates_dict)} entries"
             )
             session.commit()
-            logger.info("Coordinates committed to database")
+            print("Coordinates committed to database")
 
         with timer("Converting weather data"):
-            logger.info(f"Starting conversion of data for {file_name_base}")
+            print(f"Starting conversion of data for {file_name_base}")
             convert(session, accum_data, instant_data, coordinates_dict, batch_size)
             session.commit()
-            logger.info("Weather data conversion complete")
+            print("Weather data conversion complete")
 
         # Close the datasets
         accum_data.close()

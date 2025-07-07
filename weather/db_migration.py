@@ -2,16 +2,11 @@
 Database migration utilities for converting time column format.
 """
 
-import logging
-
 from sqlalchemy import text
 
 from weather.database import engine
 
 from .timer import timer
-
-logger = logging.getLogger(__name__)
-
 
 def migrate_time_column():
     """
@@ -27,7 +22,7 @@ def migrate_time_column():
     """
     with timer("Database migration"):
         try:
-            logger.info("Starting database migration to convert time column")
+            print("Starting database migration to convert time column")
 
             # SQL statements to execute
             migration_steps = [
@@ -71,13 +66,13 @@ def migrate_time_column():
             # Execute each SQL statement
             with engine.begin() as conn:
                 for i, sql in enumerate(migration_steps):
-                    logger.info(
+                    print(
                         f"Executing migration step {i + 1}/{len(migration_steps)}"
                     )
                     conn.execute(text(sql))
 
-            logger.info("Database migration completed successfully")
+            print("Database migration completed successfully")
 
         except Exception as e:
-            logger.error(f"Migration failed: {e}", exc_info=True)
+            print(f"Migration failed: {e}")
             raise
