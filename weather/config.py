@@ -11,7 +11,7 @@ import yaml
 logger = logging.getLogger(__name__)
 
 
-def load_config(config_path="settings.yaml"):
+def load_config(config_path="config.yaml"):
     """
     Load configuration from YAML file and resolve paths.
 
