@@ -30,21 +30,6 @@ def load_config(config_path="config.yaml"):
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
 
-    # Resolve the ROOT_DIR if it's relative
-    if "ROOT_DIR" in config:
-        root_dir = Path(config["ROOT_DIR"]).expanduser().resolve()
-        config["ROOT_DIR"] = str(root_dir)
-
-        # Resolve any relative paths using ROOT_DIR
-        if "input_dir" in config and not os.path.isabs(config["input_dir"]):
-            config["input_dir"] = str(root_dir / config["input_dir"])
-
-    else:
-        # If ROOT_DIR not provided, use current working directory
-        config["ROOT_DIR"] = str(Path.cwd())
-
-        # If input_dir is not absolute and ROOT_DIR wasn't provided, resolve against cwd
-        if "input_dir" not in config:
-            config["input_dir"] = str(Path.cwd() / "input")
+        config["input_dir"] = str(config["input_dir"])
 
     return config
