@@ -26,12 +26,6 @@ def parse_arguments():
         type=int,
         help="Override batch size from config file",
     )
-    parser.add_argument(
-        "--no-migration",
-        dest="perform_migration",
-        action="store_false",
-        help="Skip database migration after processing",
-    )
     parser.set_defaults(perform_migration=True)
     return parser.parse_args()
 
