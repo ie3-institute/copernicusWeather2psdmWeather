@@ -13,7 +13,8 @@ def migrate_time_column():
     """
     Migrate weathervalue table to convert the time column from string to timestamptz.
 
-    This performs the following steps:
+    This migration is necessary since we expect the time column in the database to be in format timestamp with time zone `timestamptz` and to be used as primary key.
+    To achieve this, the time string from input data is used and converted by the following steps:
     1. Create a temporary table with the same structure
     2. Alter the temporary table to use timestamptz for the time column
     3. Copy data with conversion from string to timestamptz
