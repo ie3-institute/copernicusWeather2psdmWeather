@@ -3,7 +3,6 @@ Configuration handling utilities.
 """
 
 import os
-from pathlib import Path
 
 import yaml
 
