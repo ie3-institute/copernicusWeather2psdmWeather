@@ -1,39 +1,26 @@
 import numpy as np
-import pandas as pd
 from netCDF4 import Dataset
 from pypsdm.db.weather.models import Coordinate
 from sqlmodel import Session
 
 
 def create_coordinates_df(weather: Dataset, session: Session):
-    # Extract coordinates
     lats = np.asarray(weather.variables["latitude"])
     lons = np.asarray(weather.variables["longitude"])
 
-    # Create coordinate meshgrids and their indices
-    latlons = np.array(np.meshgrid(lats, lons)).T.reshape(-1, 2)
-    latlons_idx = np.array(
-        np.meshgrid(np.arange(len(lats)), np.arange(len(lons)))
-    ).T.reshape(-1, 2)
+    coordinates = []
+    idx_to_id = {}
 
-    # Create DataFrame with coordinates and indices
-    latlons_df = pd.DataFrame(
-        {
-            "coordinate": [
-                Coordinate.from_xy(idx, lon, lat).coordinate
-                for idx, (lat, lon) in zip(latlons_idx, latlons)
-            ],
-            "idx": [tuple(idx) for idx in latlons_idx],
-        }
-    )
+    coord_id = 0
+    for lat_idx, lat in enumerate(lats):
+        for lon_idx, lon in enumerate(lons):
+            coord = Coordinate.from_xy(coord_id, float(lon), float(lat))
+            coordinates.append(coord)
 
-    # Bulk create coordinates and add to session
-    coordinates = [
-        Coordinate(id=i, coordinate=row["coordinate"])
-        for i, row in latlons_df.iterrows()
-    ]
+            idx_to_id[(lat_idx, lon_idx)] = coord_id
+            coord_id += 1
 
     session.add_all(coordinates)
     session.commit()
 
-    return {tuple(idx): i for i, idx in enumerate(latlons_idx)}
+    return idx_to_id
