@@ -92,6 +92,7 @@ def main():
 
         try:
             inspect_grib_file(grib_file_path)
+            print("GRIB file inspection completed successfully.")
             return 0
         except Exception as e:
             print(f"Error inspecting GRIB file: {e}")
@@ -111,27 +112,30 @@ def main():
 
             perform_migration = True
 
+            # Get input directory from config
             input_dir = config.get("input_dir")
             file_name_base = config.get("file_name_base")
 
-        print(f"Loaded configuration from {args.config_path}")
-        print(f"Using ROOT_DIR: {config.get('ROOT_DIR')}")
-        print(f"Using input directory: {input_dir}")
-        print(f"Using file name base: {file_name_base}")
-        print(f"Using batch size: {batch_size}")
-        print(f"Database migration: {'Enabled' if perform_migration else 'Disabled'}")
+            print(f"Loaded configuration from {args.config_path}")
+            print(f"Using ROOT_DIR: {config.get('ROOT_DIR')}")
+            print(f"Using input directory: {input_dir}")
+            print(f"Using file name base: {file_name_base}")
+            print(f"Using batch size: {batch_size}")
+            print(
+                f"Database migration: {'Enabled' if perform_migration else 'Disabled'}"
+            )
 
-        print("Starting weather data processing")
-        process_weather_data(input_dir, file_name_base, batch_size, perform_migration)
-        print("Processing completed successfully")
-    except Exception as e:
-        print(f"Error during processing: {e}")
-        return 1
+            print("Starting weather data processing")
+            process_weather_data(
+                input_dir, file_name_base, batch_size, perform_migration
+            )
+            print("Processing completed successfully")
+        except Exception as e:
+            print(f"Error during processing: {e}")
+            return 1
 
-    return 0
+        return 0
 
 
 if __name__ == "__main__":
-    import logging
-
     exit(main())
