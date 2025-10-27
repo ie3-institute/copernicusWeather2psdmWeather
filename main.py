@@ -40,13 +40,6 @@ def parse_arguments():
     netcdf_parser = subparsers.add_parser("process-netcdf", help="Process NetCDF files")
 
     netcdf_parser.add_argument(
-        "--config",
-        dest="config_path",
-        type=str,
-        default="settings.yaml",
-        help="Path to YAML configuration file",
-    )
-    netcdf_parser.add_argument(
         "--batch-size",
         dest="batch_size",
         type=int,
@@ -73,6 +66,8 @@ def parse_arguments():
 def main():
     # Parse command line arguments
     args = parse_arguments()
+
+    status_code = 0  # Initialize status code
 
     if args.command == "inspect-grib":
         # Load configuration from YAML
@@ -132,9 +127,9 @@ def main():
             print("Processing completed successfully")
         except Exception as e:
             print(f"Error during processing: {e}")
-            return 1
+            status_code = 1
 
-        return 0
+        return status_code
 
 
 if __name__ == "__main__":
