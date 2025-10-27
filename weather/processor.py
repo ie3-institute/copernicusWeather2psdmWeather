@@ -16,7 +16,6 @@ from weather.convert import (
     convert_grib,
     convert_netCFD,
     get_grib_coordinates,
-    inspect_grib_file,
 )
 from weather.database import create_database_and_tables, engine
 
@@ -74,9 +73,7 @@ def create_coordinates_from_grib(grib_file_path, session):
     lats, lons = get_grib_coordinates(grib_file_path)
     coordinates_dict = {}
 
-    logger.info(
-        f"Creating coordinates from GRIB file: {lats.shape[0]}x{lats.shape[1]} grid"
-    )
+    print(f"Creating coordinates from GRIB file: {lats.shape[0]}x{lats.shape[1]} grid")
 
     for lat_idx in range(lats.shape[0]):
         for lon_idx in range(lats.shape[1]):
@@ -147,7 +144,7 @@ def process_weather_data(
             f"Expected formats: NetCDF (.nc) or GRIB (.grib, .grb, .grib2, .grb2)"
         )
 
-    logger.info(f"Found files: {found_files}, Format: {file_format}")
+    print(f"Found files: {found_files}, Format: {file_format}")
 
     with Session(engine) as session:
         with timer("Database initialization"):
@@ -166,7 +163,7 @@ def process_weather_data(
 
                 except sqlalchemy.exc.OperationalError as e:
                     if attempt < max_retries - 1:
-                        logger.warning(
+                        print(
                             f"Connection attempt {attempt + 1} failed. Retrying in {retry_delay}s..."
                         )
                         time.sleep(retry_delay)
@@ -216,50 +213,44 @@ def process_weather_data(
             # GRIB processing logic
             grib_file_path = found_files[0]
 
-            # Optional: Inspect GRIB file structure for debugging
-            if logger.isEnabledFor(logging.DEBUG):
-                inspect_grib_file(grib_file_path)
-
             with timer("Creating coordinates from GRIB"):
                 coordinates_dict = create_coordinates_from_grib(grib_file_path, session)
-                logger.info(
+                print(
                     f"Created coordinates dictionary with {len(coordinates_dict)} entries"
                 )
                 session.commit()
-                logger.info("Coordinates committed to database")
+                print("Coordinates committed to database")
 
             with timer("Converting GRIB weather data"):
-                logger.info(f"Starting conversion of GRIB data for {file_name_base}")
+                print(f"Starting conversion of GRIB data for {file_name_base}")
                 convert_grib(session, grib_file_path, coordinates_dict, batch_size)
                 session.commit()
-                logger.info("GRIB weather data conversion complete")
+                print("GRIB weather data conversion complete")
 
         elif file_format == "netcdf_single":
             # Single NetCDF file processing
             netcdf_file_path = found_files[0]
 
             with timer("Loading single NetCDF file"):
-                logger.info(f"Opening NetCDF file: {netcdf_file_path}")
+                print(f"Opening NetCDF file: {netcdf_file_path}")
                 dataset = Dataset(netcdf_file_path, "r", format="NETCDF4")
-                logger.info(f"Dataset dimensions: {dataset.dimensions}")
+                print(f"Dataset dimensions: {dataset.dimensions}")
 
             with timer("Creating coordinates"):
                 coordinates_dict = create_coordinates_df(dataset, session)
-                logger.info(
+                print(
                     f"Created coordinates dictionary with {len(coordinates_dict)} entries"
                 )
                 session.commit()
-                logger.info("Coordinates committed to database")
+                print("Coordinates committed to database")
 
             with timer("Converting weather data"):
-                logger.info(
-                    f"Starting conversion of single NetCDF data for {file_name_base}"
-                )
+                print(f"Starting conversion of single NetCDF data for {file_name_base}")
                 # You might need to create a separate converter for single NetCDF files
                 # or modify the existing convert function
                 convert_netCFD(session, dataset, dataset, coordinates_dict, batch_size)
                 session.commit()
-                logger.info("Weather data conversion complete")
+                print("Weather data conversion complete")
 
             dataset.close()
 
