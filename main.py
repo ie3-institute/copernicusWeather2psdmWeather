@@ -8,7 +8,6 @@ from pathlib import Path
 
 from weather.config import load_config
 from weather.convert import inspect_grib_file
-from weather.logging_setup import setup_logging
 from weather.processor import process_weather_data
 
 # Add the parent directory to the path to import our modules
@@ -24,7 +23,7 @@ def parse_arguments():
         "--config",
         dest="config_path",
         type=str,
-        default="settings.yaml",
+        default="config.yaml",
         help="Path to YAML configuration file",
     )
 
@@ -72,13 +71,11 @@ def parse_arguments():
 
 
 def main():
+    # Parse command line arguments
     args = parse_arguments()
 
     if args.command == "inspect-grib":
-        # Setup logging for inspecting GRIB files
-        log_level = logging.DEBUG if args.verbose else logging.INFO
-        logger = setup_logging(log_level=log_level)
-
+        # Load configuration from YAML
         config = load_config(args.config_path)
         input_dir = config.get("input_dir")
         file_name_base = config.get("file_name_base")
@@ -95,17 +92,12 @@ def main():
 
         try:
             inspect_grib_file(grib_file_path)
-            logger.info("GRIB file inspection completed successfully.")
             return 0
         except Exception as e:
-            logger.error(f"Error inspecting GRIB file: {e}", exc_info=True)
+            print(f"Error inspecting GRIB file: {e}")
             return 1
 
     elif args.command == "process-netcdf":
-
-        # Set up initial logging for argument parsing
-        logger = setup_logging()
-
         try:
             # Load configuration from YAML
             config = load_config(args.config_path)
@@ -122,22 +114,18 @@ def main():
             input_dir = config.get("input_dir")
             file_name_base = config.get("file_name_base")
 
-            logger.info(f"Loaded configuration from {args.config_path}")
-            logger.info(f"Using ROOT_DIR: {config.get('ROOT_DIR')}")
-            logger.info(f"Using input directory: {input_dir}")
-            logger.info(f"Using file name base: {file_name_base}")
-            logger.info(f"Using batch size: {batch_size}")
-            logger.info(
-                f"Database migration: {'Enabled' if perform_migration else 'Disabled'}"
-            )
+        print(f"Loaded configuration from {args.config_path}")
+        print(f"Using ROOT_DIR: {config.get('ROOT_DIR')}")
+        print(f"Using input directory: {input_dir}")
+        print(f"Using file name base: {file_name_base}")
+        print(f"Using batch size: {batch_size}")
+        print(f"Database migration: {'Enabled' if perform_migration else 'Disabled'}")
 
-            logger.info("Starting weather data processing")
-            process_weather_data(
-                input_dir, file_name_base, batch_size, perform_migration
-            )
-            logger.info("Processing completed successfully")
-        except Exception as e:
-            logger.error(f"Error during processing: {e}", exc_info=True)
+        print("Starting weather data processing")
+        process_weather_data(input_dir, file_name_base, batch_size, perform_migration)
+        print("Processing completed successfully")
+    except Exception as e:
+        print(f"Error during processing: {e}")
         return 1
 
     return 0

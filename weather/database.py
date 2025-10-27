@@ -5,7 +5,7 @@ from sqlmodel import SQLModel, create_engine
 
 from definitions import ROOT_DIR
 
-with open(os.path.join(ROOT_DIR, "settings.yaml"), "r") as yamlfile:
+with open(os.path.join(ROOT_DIR, "config.yaml"), "r") as yamlfile:
     config = yaml.safe_load(yamlfile)
 user = config["db_user"]
 pw = config["db_password"]

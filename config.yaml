@@ -1,0 +1,9 @@
+db_user: "postgres"
+db_port: 5432
+db_password: "postgres"
+db_name: "PLACEHOLDER_DB_NAME"
+input_dir: "input"
+#Weather in netCFD format are provided by Copernicus in two files ending with `_accum.nc` and `_instant.nc`.
+#This parameter allows to set the file_name_base.
+#E.g. `weather_data_accum.nc` and `weather_data_instant.nc`. file_name_base would be `weather_data`
+file_name_base: "WEATHER_DATA_INPUT_FILE_BASE_NAME"

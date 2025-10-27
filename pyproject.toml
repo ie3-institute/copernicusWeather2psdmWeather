@@ -9,18 +9,20 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python =  ">3.11,<3.13"
 pypsdm = "^0.0.6"
-psycopg2 = "^2.9.10"
+psycopg2 = "^2.9.11"
+netcdf4 = "^1.7.3"
+sqlmodel = "^0.0.24"
 cfgrib = "^0.9.15.0"
 xarray = "^2025.6.1"
 eccodes = "^2.42.0"
 pyarrow = "^20.0.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.4.1"
+pytest = "^8.4.2"
 flake8 = "^7.3.0"
-flake8-black = "^0.3.6"
-flake8-isort = "^6.1.2"
-pre-commit = "^4.2.0"
+flake8-black = "^0.4.0"
+flake8-isort = "^7.0.0"
+pre-commit = "^4.3.0"
 PyYAML = "^6.0"
 
 [tool.isort]

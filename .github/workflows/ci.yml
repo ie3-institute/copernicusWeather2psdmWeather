@@ -87,14 +87,6 @@ jobs:
         run: poetry --version
 
       #----------------------------------------------
-      #       Modify pyproject.toml for CI
-      #----------------------------------------------
-      - name: Modify pyproject.toml for CI
-        run: |
-          sed -i.bak 's/psycopg2 = "^2.9.10"/psycopg2-binary = "^2.9.10"/' pyproject.toml
-          cat pyproject.toml
-
-      #----------------------------------------------
       #       load cached venv if cache exists
       #----------------------------------------------
       - name: Load cached venv
