@@ -2,6 +2,7 @@
 """
 Main entry point for weather data processing application.
 """
+
 import argparse
 
 from weather.config import load_config
