@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Disabled auto-merge for minor Dependabot updates [#20](https://github.com/ie3-institute/copernicusWeather2psdmWeather/issues/20)
+- Updated auto-merge to use optimized logic [#37](https://github.com/ie3-institute/copernicusWeather2psdmWeather/issues/37)
 
 ### Removed
 
