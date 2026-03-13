@@ -92,7 +92,10 @@ def main():
             return 0
         except Exception as e:
             print(f"Error inspecting GRIB file: {e}")
-            return 1
+            status_code = 1
+
+        return status_code
+
 
     elif args.command == "process-netcdf":
         try:
