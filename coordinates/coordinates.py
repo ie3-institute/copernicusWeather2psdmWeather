@@ -25,7 +25,6 @@ def create_coordinates_df(weather: Dataset, session: Session):
             coord_id += 1
 
     session.add_all(coordinates)
-    session.commit()
 
     return idx_to_id
 
