@@ -90,7 +90,6 @@ def main():
 
         return status_code
 
-
     elif args.command == "process-netcdf":
         try:
             # Load configuration from YAML
