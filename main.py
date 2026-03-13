@@ -47,12 +47,6 @@ def parse_arguments():
         help="Override batch size from config file",
     )
     netcdf_parser.add_argument(
-        "--log-file",
-        dest="log_file",
-        type=str,
-        help="Override log file path from config file",
-    )
-    netcdf_parser.add_argument(
         "--no-migration",
         dest="perform_migration",
         action="store_false",
