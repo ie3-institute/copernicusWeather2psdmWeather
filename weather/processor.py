@@ -5,22 +5,22 @@ Main weather data processing functionality with GRIB and NetCDF support.
 import os
 import time
 from pathlib import Path
-
+import xarray as xr
 import sqlalchemy
 from netCDF4 import Dataset
 from sqlalchemy import text
 from sqlmodel import Session
 
-from coordinates.coordinates import create_coordinates_df, insert_coordinate
+from coordinates.coordinates import create_coordinates_df
 from weather.convert import (
     convert_grib,
     convert_netCFD,
-    get_grib_coordinates,
 )
 from weather.database import create_database_and_tables, engine
 
 from .db_migration import migrate_time_column
 from .timer import timer
+from definitions import ROOT_DIR
 
 
 def detect_file_format(file_path):
@@ -75,48 +75,34 @@ def process_weather_data(
         OSError: If there are issues accessing the files
         Exception: For other errors during processing
     """
-
     # Try to find files with different extensions and formats
-    possible_files = [
-        # NetCDF format (existing)
-        (f"{file_name_base}_accum.nc", f"{file_name_base}_instant.nc", "netcdf_split"),
-        # Single NetCDF file
-        (f"{file_name_base}.nc", None, "netcdf_single"),
-        # GRIB format
-        (f"{file_name_base}.grib", None, "grib_single"),
-        (f"{file_name_base}.grb", None, "grib_single"),
-        (f"{file_name_base}.grib2", None, "grib_single"),
-        (f"{file_name_base}.grb2", None, "grib_single"),
-    ]
+    file1_nc = f"{file_name_base}_accum.nc"
+    file2_nc = f"{file_name_base}_instant.nc"
+    file_grib = f"{file_name_base}.grib"
 
-    found_files = None
-    file_format = None
+    file1_nc_path = os.path.join(ROOT_DIR, input_dir, file1_nc)
+    file2_nc_path = os.path.join(ROOT_DIR, input_dir, file2_nc)
 
-    for file1, file2, format_type in possible_files:
-        file1_path = os.path.join(input_dir, file1)
+    file_grib_path =os.path.join(ROOT_DIR, input_dir, file_grib)
 
-        if os.path.exists(file1_path):
-            if file2 is None:
-                # Single file format
-                found_files = (file1_path, None)
-                file_format = format_type
-                break
-            else:
-                # Two-file format
-                file2_path = os.path.join(input_dir, file2)
-                if os.path.exists(file2_path):
-                    found_files = (file1_path, file2_path)
-                    file_format = format_type
-                    break
 
-    if found_files is None:
+    if os.path.exists(file1_nc_path) and os.path.exists(file2_nc_path) and not os.path.exists(file_grib_path):
+        # netCdf
+        path_found_files = (file1_nc_path, file2_nc_path)
+        file_format = "netcdf"
+
+    elif os.path.exists(file_grib_path):
+        # Grib
+        path_found_files = (file_grib_path, None)
+        file_format = "grib"
+    else:
         raise FileNotFoundError(
             f"No weather data files found for base name: {file_name_base}\n"
             f"Searched in directory: {input_dir}\n"
-            f"Expected formats: NetCDF (.nc) or GRIB (.grib, .grb, .grib2, .grb2)"
+            f"Expected formats: NetCDF (.nc) or GRIB (.grib)"
         )
 
-    print(f"Found files: {found_files}, Format: {file_format}")
+    print(f"Path of found files: {path_found_files}, Format: {file_format}")
 
     with Session(engine) as session:
         with timer("Database initialization"):
@@ -146,9 +132,9 @@ def process_weather_data(
                         ) from e
 
         # Process based on file format
-        if file_format == "netcdf_split":
+        if file_format == "netcdf":
             # Existing NetCDF processing logic
-            accum_file_path, instant_file_path = found_files
+            accum_file_path, instant_file_path = path_found_files
 
             with timer("Loading NetCDF files"):
                 print(
@@ -181,12 +167,16 @@ def process_weather_data(
             accum_data.close()
             instant_data.close()
 
-        elif file_format in ["grib_single"]:
+        elif file_format in ["grib"]:
             # GRIB processing logic
-            grib_file_path = found_files[0]
+            grib_file_path = path_found_files[0]
 
             with timer("Creating coordinates from GRIB"):
-                coordinates_dict = create_coordinates_df(grib_file_path, session)
+                print(
+                    f"Opening GRIB file: {grib_file_path}"
+                )
+                weather = xr.open_dataset(grib_file_path, engine="cfgrib")
+                coordinates_dict = create_coordinates_df(weather, session)
                 print(
                     f"Created coordinates dictionary with {len(coordinates_dict)} entries"
                 )
