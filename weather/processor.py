@@ -227,33 +227,6 @@ def process_weather_data(
                 session.commit()
                 print("GRIB weather data conversion complete")
 
-        elif file_format == "netcdf_single":
-            # Single NetCDF file processing
-            netcdf_file_path = found_files[0]
-
-            with timer("Loading single NetCDF file"):
-                print(f"Opening NetCDF file: {netcdf_file_path}")
-                dataset = Dataset(netcdf_file_path, "r", format="NETCDF4")
-                print(f"Dataset dimensions: {dataset.dimensions}")
-
-            with timer("Creating coordinates"):
-                coordinates_dict = create_coordinates_df(dataset, session)
-                print(
-                    f"Created coordinates dictionary with {len(coordinates_dict)} entries"
-                )
-                session.commit()
-                print("Coordinates committed to database")
-
-            with timer("Converting weather data"):
-                print(f"Starting conversion of single NetCDF data for {file_name_base}")
-                # You might need to create a separate converter for single NetCDF files
-                # or modify the existing convert function
-                convert_netCFD(session, dataset, dataset, coordinates_dict, batch_size)
-                session.commit()
-                print("Weather data conversion complete")
-
-            dataset.close()
-
     # Perform database migration after all data has been processed
     if perform_migration:
         migrate_time_column()
