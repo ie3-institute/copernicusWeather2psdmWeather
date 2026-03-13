@@ -58,34 +58,6 @@ def detect_file_format(file_path):
                 return "unknown"
 
 
-def create_coordinates_from_grib(grib_file_path, session):
-    """
-    Create coordinates dictionary from GRIB file.
-
-    Args:
-        grib_file_path: Path to GRIB file
-        session: Database session
-
-    Returns:
-        dict: Dictionary mapping (lat_idx, lon_idx) to coordinate_id
-    """
-
-    lats, lons = get_grib_coordinates(grib_file_path)
-    coordinates_dict = {}
-
-    print(f"Creating coordinates from GRIB file: {lats.shape[0]}x{lats.shape[1]} grid")
-
-    for lat_idx in range(lats.shape[0]):
-        for lon_idx in range(lats.shape[1]):
-            lat = float(lats[lat_idx, lon_idx])
-            lon = float(lons[lat_idx, lon_idx])
-
-            coordinate_id = insert_coordinate(session, lat, lon)
-            coordinates_dict[(lat_idx, lon_idx)] = coordinate_id
-
-    return coordinates_dict
-
-
 def process_weather_data(
     input_dir, file_name_base, batch_size=1000, perform_migration=True
 ):
@@ -214,7 +186,7 @@ def process_weather_data(
             grib_file_path = found_files[0]
 
             with timer("Creating coordinates from GRIB"):
-                coordinates_dict = create_coordinates_from_grib(grib_file_path, session)
+                coordinates_dict = create_coordinates_df(grib_file_path, session)
                 print(
                     f"Created coordinates dictionary with {len(coordinates_dict)} entries"
                 )
