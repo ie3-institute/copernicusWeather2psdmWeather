@@ -5,13 +5,15 @@ Main weather data processing functionality with GRIB and NetCDF support.
 import os
 import time
 from pathlib import Path
-import xarray as xr
+
 import sqlalchemy
+import xarray as xr
 from netCDF4 import Dataset
 from sqlalchemy import text
 from sqlmodel import Session
 
 from coordinates.coordinates import create_coordinates_df
+from definitions import ROOT_DIR
 from weather.convert import (
     convert_grib,
     convert_netCFD,
@@ -20,7 +22,6 @@ from weather.database import create_database_and_tables, engine
 
 from .db_migration import migrate_time_column
 from .timer import timer
-from definitions import ROOT_DIR
 
 
 def detect_file_format(file_path):
@@ -83,10 +84,13 @@ def process_weather_data(
     file1_nc_path = os.path.join(ROOT_DIR, input_dir, file1_nc)
     file2_nc_path = os.path.join(ROOT_DIR, input_dir, file2_nc)
 
-    file_grib_path =os.path.join(ROOT_DIR, input_dir, file_grib)
+    file_grib_path = os.path.join(ROOT_DIR, input_dir, file_grib)
 
-
-    if os.path.exists(file1_nc_path) and os.path.exists(file2_nc_path) and not os.path.exists(file_grib_path):
+    if (
+        os.path.exists(file1_nc_path)
+        and os.path.exists(file2_nc_path)
+        and not os.path.exists(file_grib_path)
+    ):
         # netCdf
         path_found_files = (file1_nc_path, file2_nc_path)
         file_format = "netcdf"
@@ -172,9 +176,7 @@ def process_weather_data(
             grib_file_path = path_found_files[0]
 
             with timer("Creating coordinates from GRIB"):
-                print(
-                    f"Opening GRIB file: {grib_file_path}"
-                )
+                print(f"Opening GRIB file: {grib_file_path}")
                 weather = xr.open_dataset(grib_file_path, engine="cfgrib")
                 coordinates_dict = create_coordinates_df(weather, session)
                 print(

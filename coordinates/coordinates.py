@@ -4,7 +4,6 @@ from pypsdm.db.weather.models import Coordinate
 from sqlmodel import Session
 
 
-
 def extract_lat_lon(weather):
     """
     Returns (lats, lons) from either:
@@ -39,6 +38,7 @@ def extract_lat_lon(weather):
 
     else:
         raise TypeError("Unsupported weather data format")
+
 
 def create_coordinates_df(weather: Dataset, session: Session):
     lats, lons = extract_lat_lon(weather)
