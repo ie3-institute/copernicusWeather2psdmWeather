@@ -4,10 +4,8 @@ Utility script for processing weather data from GRIB or NetCDF files.
 """
 
 import argparse
-from pathlib import Path
 
 from weather.config import load_config
-from weather.convert import inspect_grib_file
 from weather.processor import process_weather_data
 
 
