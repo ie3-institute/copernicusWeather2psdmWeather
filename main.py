@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 """
-Main entry point for weather data processing application.
+Utility script for processing weather data from GRIB or NetCDF files.
 """
 
 import argparse
+from pathlib import Path
 
 from weather.config import load_config
+from weather.convert import inspect_grib_file
 from weather.processor import process_weather_data
 
 
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Process weather data from NetCDF files."
+        description="Process weather data from GRIB or NetCDF files."
     )
     parser.add_argument(
         "--config",
