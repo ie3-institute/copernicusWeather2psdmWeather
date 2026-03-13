@@ -16,6 +16,21 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
+      - name: Check Pre-Release
+        run: |
+          NEW="${{ steps.metadata.outputs.new-version }}"
+          if [[ "$NEW" =~ ([0-9]+!)?[0-9]+(\.[0-9]+)*((a|b|rc)[0-9]*|\.dev[0-9]*) ]]; then
+            echo "::error::Pre-release version ($NEW) detected – workflow stopped."
+            exit 1
+          fi
+
+      - name: Approve the PR
+        if: steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
       - name: Enable auto-merge for Dependabot PRs
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch'
         run: gh pr merge --auto --merge "$PR_URL"
