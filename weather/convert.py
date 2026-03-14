@@ -110,72 +110,24 @@ def convert_grib(
         batch_size: Number of records to process before committing to database
     """
     logger.info(f"Opening GRIB file with xarray: {grib_file_path}")
-
     try:
-        # Open GRIB file with cfgrib backend
+        # Open GRIB file
         ds = xr.open_dataset(grib_file_path, engine="cfgrib")
+        ds_fdir = xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "fdir"})
+        ds_ssrd = xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "ssrd"})
+        ds_t2m = xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"})
+        ds_u100 = xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100u"})
+        ds_v100= xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100v"})
 
-        logger.info(f"GRIB dataset variables: {list(ds.variables.keys())}")
-        logger.info(f"GRIB dataset dimensions: {dict(ds.dims)}")
-        logger.info(f"GRIB dataset coordinates: {list(ds.coords.keys())}")
+        # Get time
 
-        # Get time dimension - cfgrib usually uses 'time' or 'valid_time'
-        time_coord = None
-        for coord_name in ["time", "valid_time", "forecast_time"]:
-            if coord_name in ds.coords:
-                time_coord = coord_name
-                break
-
-        if time_coord is None:
+        if "time" not in ds.coords:
             raise ValueError("No time coordinate found in GRIB file")
 
-        # Get time values
-        time_values = ds[time_coord].values
+        time_values = ds["time"].values
         logger.info(
-            f"Found {len(time_values)} time steps using coordinate '{time_coord}'"
+            f"Found {len(time_values)} time steps using coordinate 'time'"
         )
-
-        # Map common GRIB variable names to our expected names
-        # You may need to adjust these based on your specific GRIB file
-        variable_mapping = {
-            # Temperature at 2m
-            "t2m": ["t2m", "2t", "T_2M", "TMP_2maboveground"],
-            # Wind components at 100m (or closest available)
-            "u100m": ["u100", "u100m", "U_100M", "100u", "UGRD_100maboveground"],
-            "v100m": ["v100", "v100m", "V_100M", "100v", "VGRD_100maboveground"],
-            # Solar radiation
-            "ssrd": [
-                "ssrd",
-                "ssr",
-                "DSWRF_surface",
-                "surface_downwelling_shortwave_flux",
-            ],
-            "fdir": ["fdir", "direct_normal_irradiance", "DNI", "direct_solar"],
-        }
-
-        # Find actual variable names in the dataset
-        actual_variables = {}
-        for our_name, possible_names in variable_mapping.items():
-            found = False
-            for possible_name in possible_names:
-                if possible_name in ds.variables:
-                    actual_variables[our_name] = possible_name
-                    logger.info(f"Found {our_name} as '{possible_name}'")
-                    found = True
-                    break
-            if not found:
-                logger.warning(
-                    f"Could not find variable for {our_name}. Tried: {possible_names}"
-                )
-
-        # Check if we have all required variables
-        required_vars = ["t2m", "u100m", "v100m", "ssrd"]
-        missing_vars = [var for var in required_vars if var not in actual_variables]
-        if missing_vars:
-            logger.error(f"Missing required variables: {missing_vars}")
-            available_vars = list(ds.variables.keys())
-            logger.info(f"Available variables in GRIB file: {available_vars}")
-            raise ValueError(f"Missing required variables: {missing_vars}")
 
         # Process data
         weather_values = []
@@ -193,22 +145,14 @@ def convert_grib(
             )
 
             # Extract data for this time step
-            time_slice = ds.isel({time_coord: time_idx})
+            time_slice = ds.isel({"time": time_idx})
 
             # Get variable data
-            temp_data = time_slice[actual_variables["t2m"]].values
-            u_wind_data = time_slice[actual_variables["u100m"]].values
-            v_wind_data = time_slice[actual_variables["v100m"]].values
-            ssrd_data = time_slice[actual_variables["ssrd"]].values
-
-            # Handle direct radiation - use ssrd if fdir not available
-            if "fdir" in actual_variables:
-                fdir_data = time_slice[actual_variables["fdir"]].values
-            else:
-                logger.warning(
-                    "Direct radiation not found, using 50% of total as approximation"
-                )
-                fdir_data = ssrd_data * 0.5  # Rough approximation
+            temp_data = ds_t2m["t2m"].isel(time=time_idx).values
+            u_wind_data = ds_u100["u100"].isel(time=time_idx).values
+            v_wind_data = ds_v100["v100"].isel(time=time_idx).values
+            ssrd_data = ds_ssrd["ssrd"].isel(time=time_idx).values
+            fdir_data = ds_fdir["fdir"].isel(time=time_idx).values
 
             # Process each coordinate
             for (lat_idx, lon_idx), coordinate_id in coordinates.items():
@@ -333,46 +277,4 @@ def get_grib_coordinates(grib_file_path):
 
     except Exception as e:
         logger.error(f"Error extracting coordinates from GRIB file: {e}", exc_info=True)
-        raise
-
-
-def inspect_grib_file(grib_file_path):
-    """
-    Inspect a GRIB file to understand its structure.
-
-    Args:
-        grib_file_path: Path to the GRIB file
-    """
-    logger.info(f"Inspecting GRIB file: {grib_file_path}")
-
-    try:
-        ds = xr.open_dataset(grib_file_path, engine="cfgrib")
-
-        print("\n=== GRIB File Structure ===")
-        print("File: {grib_file_path}")
-        print("\nDimensions:")
-        for dim, size in ds.dims.items():
-            print(f"  {dim}: {size}")
-
-        print("\nCoordinates:")
-        for coord in ds.coords:
-            print(
-                f"  {coord}: {ds[coord].shape} - {ds[coord].long_name if 'long_name' in ds[coord].attrs else 'No description'}"
-            )
-
-        print("\nData Variables:")
-        for var in ds.data_vars:
-            attrs = ds[var].attrs
-            long_name = attrs.get("long_name", "No description")
-            units = attrs.get("units", "No units")
-            print(f"  {var}: {ds[var].shape} - {long_name} ({units})")
-
-        print("\nGlobal Attributes:")
-        for attr, value in ds.attrs.items():
-            print(f"  {attr}: {value}")
-
-        ds.close()
-
-    except Exception as e:
-        logger.error(f"Error inspecting GRIB file: {e}", exc_info=True)
         raise
