@@ -75,11 +75,6 @@ jobs:
           export PATH="/usr/local/opt/postgresql@14/bin:$PATH"
           echo 'export PATH="/usr/local/opt/postgresql@14/bin:$PATH"' >> ~/.bash_profile
 
-      - name: Install Docker Compose (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install docker-compose
-
       #----------------------------------------------
       #  -----  install & configure poetry  -----
       #----------------------------------------------
