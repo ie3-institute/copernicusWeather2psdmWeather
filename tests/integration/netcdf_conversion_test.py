@@ -1,3 +1,4 @@
+import csv
 import os
 import socket
 import subprocess
@@ -78,17 +79,55 @@ class TestNetCDFConversion(unittest.TestCase):
         self.session.close()
 
     def test_netcdf_conversion_creates_weather_values(self):
-        config_path = os.path.join(
-            ROOT_DIR, "tests", "integration", "netcdf_conversion_config.yaml"
-        )
-        engine = get_engine(config_path)
-        session = Session(engine)
-        results = session.exec(select(WeatherValue)).all()
+        results = self.session.exec(select(WeatherValue)).all()
+        db_rows = {(str(r.time), int(r.coordinate_id)): r for r in results}
 
-        first = results[0]
-        self.assertEqual(
-            first.t2m, 291.27630615234375, "Unexpected t2m value in first WeatherValue"
+        csv_path = os.path.join(
+            ROOT_DIR,
+            "tests",
+            "resources",
+            "integration",
+            "N51_5W6_5S51_0E9_0-20250601-20250604.csv",
         )
+        with open(csv_path, newline="") as csvfile:
+            reader = list(csv.DictReader(csvfile))
+            # Check DB has no extra rows
+            self.assertEqual(len(db_rows), len(reader), "DB has extra rows not in CSV")
+            # Compare rows of DB and csv
+            for row in reader:
+                key = (row["time"], int(row["coordinate_id"]))
+                self.assertIn(key, db_rows, f"Missing row in DB for {key}")
+                db_row = db_rows[key]
+                self.assertAlmostEqual(
+                    float(row["t2m"]),
+                    db_row.t2m,
+                    places=8,
+                    msg=f"Mismatch for t2m at {key}",
+                )
+                self.assertAlmostEqual(
+                    float(row["aswdifd_s"]),
+                    db_row.aswdifd_s,
+                    places=8,
+                    msg=f"Mismatch for aswdifd_s at {key}",
+                )
+                self.assertAlmostEqual(
+                    float(row["aswdir_s"]),
+                    db_row.aswdir_s,
+                    places=8,
+                    msg=f"Mismatch for aswdir_s at {key}",
+                )
+                self.assertAlmostEqual(
+                    float(row["u131m"]),
+                    db_row.u131m,
+                    places=8,
+                    msg=f"Mismatch for u131m at {key}",
+                )
+                self.assertAlmostEqual(
+                    float(row["v131m"]),
+                    db_row.v131m,
+                    places=8,
+                    msg=f"Mismatch for v131m at {key}",
+                )
 
 
 if __name__ == "__main__":
