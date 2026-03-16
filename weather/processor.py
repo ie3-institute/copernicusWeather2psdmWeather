@@ -4,7 +4,6 @@ Main weather data processing functionality with GRIB and NetCDF support.
 
 import os
 import time
-from pathlib import Path
 
 import sqlalchemy
 import xarray as xr
@@ -22,41 +21,6 @@ from weather.database import create_database_and_tables, engine
 
 from .db_migration import migrate_time_column
 from .timer import timer
-
-
-def detect_file_format(file_path):
-    """
-    Detect whether a file is NetCDF or GRIB format.
-
-    Args:
-        file_path: Path to the file
-
-    Returns:
-        str: 'netcdf', 'grib', or 'unknown'
-    """
-    file_ext = Path(file_path).suffix.lower()
-
-    if file_ext in [".nc", ".nc4", ".netcdf"]:
-        return "netcdf"
-    elif file_ext in [".grib", ".grb", ".grib2", ".grb2"]:
-        return "grib"
-    else:
-        # Try to detect by file content
-        try:
-            # Try opening as NetCDF
-            ds = Dataset(file_path, "r")
-            ds.close()
-            return "netcdf"
-        except OSError:
-            try:
-                # Try opening as GRIB
-                import pygrib
-
-                grbs = pygrib.open(file_path)
-                grbs.close()
-                return "grib"
-            except (IOError, ValueError):
-                return "unknown"
 
 
 def process_weather_data(
