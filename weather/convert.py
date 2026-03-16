@@ -151,35 +151,22 @@ def convert_grib(
             u_wind_data = ds_u100["u100"].isel(time=time_idx).values
             v_wind_data = ds_v100["v100"].isel(time=time_idx).values
 
+            # Handle times for accumulated weather data (radiation), based on ssrd
+            valid_times = ds_ssrd["valid_time"].values
+            target_time = np.datetime64(time)
+            match = np.where(valid_times == target_time)
+            if match[0].size == 0:
+                raise Exception(f"No matching valid_time for {target_time}, skipping.")
+            ssrd_time_idx, ssrd_step_idx = match[0][0], match[1][0]
+
+            ssrd_slice = ds_ssrd["ssrd"].values[ssrd_time_idx, ssrd_step_idx]
+            # using ssrd time and step index also for fdir
+            fdir_slice = ds_fdir["fdir"].values[ssrd_time_idx, ssrd_step_idx]
+
             for (lat_idx, lon_idx), coordinate_id in coordinates.items():
                 try:
-
-                    # Get the time step for hourly accumulated weather data (radiation)
-                    valid_times = ds_ssrd["valid_time"].values  # shape (time, step)
-                    target_time = np.datetime64(time_obj)
-                    match = np.where(valid_times == target_time)
-                    if match[0].size == 0:
-                        logger.warning(
-                            f"No matching valid_time for {target_time}, skipping."
-                        )
-                        continue
-                    ssrd_time_idx, ssrd_step_idx = match[0][0], match[1][0]
-                    ssrd_val = ds_ssrd["ssrd"].values[
-                        ssrd_time_idx, ssrd_step_idx, lat_idx, lon_idx
-                    ]
-                    fdir_time_idx, fdir_step_idx = match[0][0], match[1][0]
-                    fdir_val = ds_fdir["fdir"].values[
-                        fdir_time_idx, fdir_step_idx, lat_idx, lon_idx
-                    ]
-
-                    ssrd = float(
-                        ssrd_val.item() if hasattr(ssrd_val, "item") else ssrd_val
-                    )
-                    fdir = float(
-                        fdir_val.item() if hasattr(fdir_val, "item") else fdir_val
-                    )
-
-                    # Extract the other weather values for this coordinate
+                    ssrd = float(ssrd_slice[lat_idx, lon_idx])
+                    fdir = float(fdir_slice[lat_idx, lon_idx])
                     temp = float(temp_data[lat_idx, lon_idx])
                     u_wind = float(u_wind_data[lat_idx, lon_idx])
                     v_wind = float(v_wind_data[lat_idx, lon_idx])
@@ -201,7 +188,7 @@ def convert_grib(
 
                 except (IndexError, ValueError) as e:
                     logger.warning(
-                        f"Error processing coordinate ({lat_idx}, {lon_idx}) at time {time_obj}: {e}"
+                        f"Error processing coordinate ({lat_idx}, {lon_idx}) at time {time}: {e}"
                     )
                     continue
 
