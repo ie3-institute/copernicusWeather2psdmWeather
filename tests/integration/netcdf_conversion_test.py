@@ -6,7 +6,9 @@ import subprocess
 import time
 import unittest
 
+import pytz
 import yaml
+from dateutil import parser
 from pypsdm.db.weather.models import WeatherValue
 from sqlalchemy import create_engine, text
 from sqlmodel import Session, select
@@ -98,7 +100,8 @@ class TestNetCDFConversion(unittest.TestCase):
             self.assertEqual(len(db_rows), len(reader), "DB has extra rows not in CSV")
             # Compare rows of DB and csv
             for row in reader:
-                key = (row["time"], int(row["coordinate_id"]))
+                csv_time = parser.parse(row["time"]).replace(tzinfo=pytz.UTC)
+                key = (str(csv_time), int(row["coordinate_id"]))
                 self.assertIn(key, db_rows, f"Missing row in DB for {key}")
                 db_row = db_rows[key]
                 self.assertAlmostEqual(
