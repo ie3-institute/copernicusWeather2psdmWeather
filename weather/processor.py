@@ -44,10 +44,10 @@ def process_weather_data(
     """
     # Try to find files with different extensions and formats
 
-    if file_format == "netCDF":
+    if file_format == "netcdf":
         # netCdf
-        file1_nc = f"{file_name_base}_accum.nc"
-        file2_nc = f"{file_name_base}_instant.nc"
+        file1_nc = f"{file_name_base}-accum.nc"
+        file2_nc = f"{file_name_base}-instant.nc"
         file1_nc_path = os.path.join(ROOT_DIR, input_dir, file1_nc)
         file2_nc_path = os.path.join(ROOT_DIR, input_dir, file2_nc)
 
