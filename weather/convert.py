@@ -63,16 +63,17 @@ def convert_netCFD(
 
             fDir = float(fdir_array[time_idx, lat_idx, lon_idx])
             influx_total = float(ssrd_array[time_idx, lat_idx, lon_idx])
+            time =  datetime.strptime(time_value, "%Y-%m-%dT%H:%M:%SZ"),
 
             # Create WeatherValue object
-            weather_value = WeatherValue(
-                time=datetime.strptime(time_value, "%Y-%m-%dT%H:%M:%SZ"),
+            weather_value = make_weather_value(
+                time=time,
                 coordinate_id=coordinate_id,
-                aswdifd_s=(influx_total - fDir) / 3600,  # Difference of ssdr - fDir
-                aswdir_s=fDir / 3600,  # J/m² in Wh/m²
-                t2m=temp,
-                u131m=u131m,
-                v131m=v131m,
+                ssrd=influx_total,
+                fdir=fDir,
+                temp=temp,
+                u_wind=u131m,
+                v_wind=v131m,
             )
 
             weather_values.append(weather_value)
@@ -143,9 +144,9 @@ def convert_grib(
 
         time_objects = [pd.to_datetime(t).to_pydatetime() for t in time_values]
 
-        for time_idx, time_obj in enumerate(time_objects):
+        for time_idx, time in enumerate(time_objects):
 
-            # Get variable data
+            # Get data for this time step
             temp_data = ds_t2m["t2m"].isel(time=time_idx).values
             u_wind_data = ds_u100["u100"].isel(time=time_idx).values
             v_wind_data = ds_v100["v100"].isel(time=time_idx).values
@@ -183,33 +184,20 @@ def convert_grib(
                     u_wind = float(u_wind_data[lat_idx, lon_idx])
                     v_wind = float(v_wind_data[lat_idx, lon_idx])
 
-                    # Raise error if any value is NaN
                     if np.isnan([temp, u_wind, v_wind, ssrd, fdir]).any():
                         raise ValueError("NaN Value occurred during conversion.")
 
-                    # Create WeatherValue object
-                    weather_value = WeatherValue(
-                        time=time_obj,
+                    weather_value = make_weather_value(time=time,
                         coordinate_id=coordinate_id,
-                        aswdifd_s=(ssrd - fdir)
-                        / 3600,  # Diffuse radiation (J/m² to Wh/m²)
-                        aswdir_s=fdir / 3600,  # Direct radiation (J/m² to Wh/m²)
-                        t2m=temp,
-                        u131m=u_wind,
-                        v131m=v_wind,
+                        ssrd=ssrd,
+                        fdir=fdir,
+                        temp=temp,
+                        u_wind=u_wind,
+                        v_wind=v_wind,
                     )
 
                     weather_values.append(weather_value)
                     total_records += 1
-
-                    # Commit in batches
-                    if len(weather_values) >= batch_size:
-                        session.add_all(weather_values)
-                        session.commit()
-                        weather_values = []
-                        logger.info(
-                            f"Committed {batch_size} records. Total processed: {total_records}"
-                        )
 
                 except (IndexError, ValueError) as e:
                     logger.warning(
@@ -237,3 +225,25 @@ def convert_grib(
                 logger.info(f"Deleted cfgrib index file: {idx_file}")
             except Exception as e:
                 logger.warning(f"Could not delete index file {idx_file}: {e}")
+
+def make_weather_value(time, coordinate_id, ssrd, fdir, temp, u_wind, v_wind):
+    """
+    Helper to create a WeatherValue instance from weather parameters.
+        Args:
+        time: time of the weather data
+        coordinate_id: ID of the coordinate of the weather data
+        ssrd: the total influx
+        fdir: the direct influx
+        temp: the temperature at 2m
+        u_wind: the u-component of the wind velocity
+        v_wind: the v-component of the wind velocity
+    """
+    return WeatherValue(
+        time=time,
+        coordinate_id=coordinate_id,
+        aswdifd_s=(ssrd - fdir) / 3600,  # Diffuse radiation (J/m² to Wh/m²)
+        aswdir_s=fdir / 3600,            # Direct radiation (J/m² to Wh/m²)
+        t2m=temp,
+        u131m=u_wind,
+        v131m=v_wind,
+    )
