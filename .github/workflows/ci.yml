@@ -56,12 +56,11 @@ jobs:
       #----------------------------------------------
       #       Install PostgreSQL dependencies
       #----------------------------------------------
-      - name: Install PostgreSQL and ecCodes (Ubuntu)
+      - name: Install PostgreSQL (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libpq-dev postgresql postgresql-contrib
-          sudo apt-get install -y libeccodes0 libeccodes-dev
 
       - name: Install Docker Compose (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
