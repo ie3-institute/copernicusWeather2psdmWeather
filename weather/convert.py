@@ -56,16 +56,17 @@ def convert_netCFD(
 
             fDir = float(fdir_array[time_idx, lat_idx, lon_idx])
             influx_total = float(ssrd_array[time_idx, lat_idx, lon_idx])
+            time = (datetime.strptime(time_value, "%Y-%m-%dT%H:%M:%SZ"),)
 
             # Create WeatherValue object
-            weather_value = WeatherValue(
-                time=datetime.strptime(time_value, "%Y-%m-%dT%H:%M:%SZ"),
+            weather_value = make_weather_value(
+                time=time,
                 coordinate_id=coordinate_id,
-                aswdifd_s=(influx_total - fDir) / 3600,  # Difference of ssdr - fDir
-                aswdir_s=fDir / 3600,  # J/m² in Wh/m²
-                t2m=temp,
-                u131m=u131m,
-                v131m=v131m,
+                ssrd=influx_total,
+                fdir=fDir,
+                temp=temp,
+                u_wind=u131m,
+                v_wind=v131m,
             )
 
             weather_values.append(weather_value)
@@ -87,3 +88,25 @@ def convert_netCFD(
         print(
             f"Final commit: {len(weather_values)} records. Total processed: {total_records}"
         )
+
+def make_weather_value(time, coordinate_id, ssrd, fdir, temp, u_wind, v_wind):
+    """
+    Helper to create a WeatherValue instance from weather parameters.
+        Args:
+        time: time of the weather data
+        coordinate_id: ID of the coordinate of the weather data
+        ssrd: the total influx
+        fdir: the direct influx
+        temp: the temperature at 2m
+        u_wind: the u-component of the wind velocity
+        v_wind: the v-component of the wind velocity
+    """
+    return WeatherValue(
+        time=time,
+        coordinate_id=coordinate_id,
+        aswdifd_s=(ssrd - fdir) / 3600,  # Diffuse radiation (J/m² to Wh/m²)
+        aswdir_s=fdir / 3600,  # Direct radiation (J/m² to Wh/m²)
+        t2m=temp,
+        u131m=u_wind,
+        v131m=v_wind,
+    )
