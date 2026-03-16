@@ -62,6 +62,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libpq-dev postgresql postgresql-contrib
 
+      - name: Install Docker Compose (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get install -y docker-compose
+
       - name: Install PostgreSQL (macOS)
         if: matrix.os == 'macos-latest'
         run: |
