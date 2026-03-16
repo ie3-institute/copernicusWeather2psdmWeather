@@ -1,5 +1,6 @@
 import csv
 import os
+import platform
 import socket
 import subprocess
 import time
@@ -53,6 +54,8 @@ def ensure_database_exists(user, pw, port, db_name):
 class TestGribConversion(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        if platform.system() == "Darwin":
+            raise unittest.SkipTest("Skipping Docker-related tests on macOS runner")
         subprocess.run(["docker-compose", "up", "-d", "testdb"], check=True)
         setup_postgres()
 
