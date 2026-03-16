@@ -7,3 +7,4 @@ input_dir: "input"
 #This parameter allows to set the file_name_base.
 #E.g. `weather_data_accum.nc` and `weather_data_instant.nc`. file_name_base would be `weather_data`
 file_name_base: "WEATHER_DATA_INPUT_FILE_BASE_NAME"
+file_format: "netcfd" # only netcfd supported

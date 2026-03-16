@@ -20,6 +20,7 @@ def convert_cds_weather(config_path=None):
         # Get input directory from config
         input_dir = config.get("input_dir")
         file_name_base = config.get("file_name_base")
+        file_format = config.get("file_format")
 
         print(f"Loaded configuration from {config_path}")
         print(f"Using ROOT_DIR: {config.get('ROOT_DIR')}")
@@ -30,7 +31,12 @@ def convert_cds_weather(config_path=None):
 
         print("Starting weather data processing")
         process_weather_data(
-            config_path, input_dir, file_name_base, batch_size, perform_migration
+            config_path,
+            input_dir,
+            file_name_base,
+            file_format,
+            batch_size,
+            perform_migration,
         )
         print("Processing completed successfully")
     except Exception as e:
