@@ -141,7 +141,9 @@ def process_weather_data(
 
             with timer("Creating coordinates from GRIB"):
                 print(f"Opening GRIB file: {grib_file_path}")
-                weather = xr.open_dataset(grib_file_path, engine="cfgrib")
+                weather = xr.open_dataset(
+                    grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"}
+                )
                 coordinates_dict = create_coordinates_df(weather, session)
                 print(
                     f"Created coordinates dictionary with {len(coordinates_dict)} entries"

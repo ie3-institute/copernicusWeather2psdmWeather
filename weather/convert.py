@@ -4,13 +4,13 @@ import os
 from datetime import datetime
 
 import numpy as np
+import pandas as pd
 import pytz
 import xarray as xr
 from netCDF4 import Dataset, num2date
 from pypsdm.db.weather.models import WeatherValue
 from sqlmodel import Session
 
-# Correct base time: 1970-01-01 for "seconds since 1970-01-01"
 BASE_TIME = datetime(year=1970, month=1, day=1, tzinfo=pytz.utc)
 
 logger = logging.getLogger(__name__)
@@ -114,61 +114,78 @@ def convert_grib(
     logger.info(f"Opening GRIB file with xarray: {grib_file_path}")
     try:
         # Open GRIB file
-        ds = xr.open_dataset(grib_file_path, engine="cfgrib")
-        ds_fdir = xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "fdir"})
-        ds_ssrd = xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "ssrd"})
-        ds_t2m = xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"})
-        ds_u100 = xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100u"})
-        ds_v100= xr.open_dataset(grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100v"})
+        ds_fdir = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "fdir"}
+        )
+        ds_ssrd = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "ssrd"}
+        )
+        ds_t2m = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"}
+        )
+        ds_u100 = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100u"}
+        )
+        ds_v100 = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100v"}
+        )
 
-        # Get time
-
-        if "time" not in ds.coords:
+        # Use temperature dataset for time reference
+        if "time" not in ds_t2m.coords:
             raise ValueError("No time coordinate found in GRIB file")
 
-        time_values = ds["time"].values
-        logger.info(
-            f"Found {len(time_values)} time steps using coordinate 'time'"
-        )
+        time_values = ds_t2m["time"].values
+        logger.info(f"Found {len(time_values)} time steps using coordinate 'time'")
 
         # Process data
         weather_values = []
         total_records = 0
 
-        # Convert time values to datetime objects if they aren't already
-        if hasattr(time_values[0], "to_pydatetime"):
-            time_objects = [t.to_pydatetime() for t in time_values]
-        else:
-            time_objects = time_values
+        time_objects = [pd.to_datetime(t).to_pydatetime() for t in time_values]
 
         for time_idx, time_obj in enumerate(time_objects):
-            logger.info(
-                f"Processing time {time_idx + 1}/{len(time_objects)}: {time_obj}"
-            )
-
-            # Extract data for this time step
-            time_slice = ds.isel({"time": time_idx})
 
             # Get variable data
             temp_data = ds_t2m["t2m"].isel(time=time_idx).values
             u_wind_data = ds_u100["u100"].isel(time=time_idx).values
             v_wind_data = ds_v100["v100"].isel(time=time_idx).values
-            ssrd_data = ds_ssrd["ssrd"].isel(time=time_idx).values
-            fdir_data = ds_fdir["fdir"].isel(time=time_idx).values
 
-            # Process each coordinate
             for (lat_idx, lon_idx), coordinate_id in coordinates.items():
                 try:
-                    # Extract values
+
+                    # Get the time step for hourly accumulated weather data (radiation)
+                    valid_times = ds_ssrd["valid_time"].values  # shape (time, step)
+                    target_time = np.datetime64(time_obj)
+                    match = np.where(valid_times == target_time)
+                    if match[0].size == 0:
+                        logger.warning(
+                            f"No matching valid_time for {target_time}, skipping."
+                        )
+                        continue
+                    ssrd_time_idx, ssrd_step_idx = match[0][0], match[1][0]
+                    ssrd_val = ds_ssrd["ssrd"].values[
+                        ssrd_time_idx, ssrd_step_idx, lat_idx, lon_idx
+                    ]
+                    fdir_time_idx, fdir_step_idx = match[0][0], match[1][0]
+                    fdir_val = ds_fdir["fdir"].values[
+                        fdir_time_idx, fdir_step_idx, lat_idx, lon_idx
+                    ]
+
+                    ssrd = float(
+                        ssrd_val.item() if hasattr(ssrd_val, "item") else ssrd_val
+                    )
+                    fdir = float(
+                        fdir_val.item() if hasattr(fdir_val, "item") else fdir_val
+                    )
+
+                    # Extract the other weather values for this coordinate
                     temp = float(temp_data[lat_idx, lon_idx])
                     u_wind = float(u_wind_data[lat_idx, lon_idx])
                     v_wind = float(v_wind_data[lat_idx, lon_idx])
-                    ssrd = float(ssrd_data[lat_idx, lon_idx])
-                    fdir = float(fdir_data[lat_idx, lon_idx])
 
-                    # Skip if any value is NaN
+                    # Raise error if any value is NaN
                     if np.isnan([temp, u_wind, v_wind, ssrd, fdir]).any():
-                        continue
+                        raise ValueError("NaN Value occurred during conversion.")
 
                     # Create WeatherValue object
                     weather_value = WeatherValue(
@@ -235,8 +252,10 @@ def get_grib_coordinates(grib_file_path):
     logger.info(f"Extracting coordinates from GRIB file: {grib_file_path}")
 
     try:
-        # Open GRIB file
-        ds = xr.open_dataset(grib_file_path, engine="cfgrib")
+        # Open GRIB file, using the temperature dataset as reference
+        ds_t2m = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"}
+        )
 
         # Get latitude and longitude coordinates
         # cfgrib usually provides these as 'latitude' and 'longitude'
@@ -247,23 +266,23 @@ def get_grib_coordinates(grib_file_path):
         lon_coord = None
 
         for name in lat_coord_names:
-            if name in ds.coords:
+            if name in ds_t2m.coords:
                 lat_coord = name
                 break
 
         for name in lon_coord_names:
-            if name in ds.coords:
+            if name in ds_t2m.coords:
                 lon_coord = name
                 break
 
         if lat_coord is None or lon_coord is None:
             raise ValueError(
-                f"Could not find latitude/longitude coordinates. Available coords: {list(ds.coords.keys())}"
+                f"Could not find latitude/longitude coordinates. Available coords: {list(ds_t2m.coords.keys())}"
             )
 
         # Get coordinate arrays
-        lats = ds[lat_coord].values
-        lons = ds[lon_coord].values
+        lats = ds_t2m[lat_coord].values
+        lons = ds_t2m[lon_coord].values
 
         # If coordinates are 1D, create 2D meshgrid
         if lats.ndim == 1 and lons.ndim == 1:
@@ -280,7 +299,7 @@ def get_grib_coordinates(grib_file_path):
                 f"Unexpected coordinate dimensions: lats {lats.shape}, lons {lons.shape}"
             )
 
-        ds.close()
+        ds_t2m.close()
         return lats, lons
 
     except Exception as e:
