@@ -34,8 +34,8 @@ def process_weather_data(
         OSError: If there are issues accessing the files
         Exception: For other errors during processing
     """
-    accum_file_name = f"{file_name_base}_accum.nc"
-    instant_file_name = f"{file_name_base}_instant.nc"
+    accum_file_name = f"{file_name_base}-accum.nc"
+    instant_file_name = f"{file_name_base}-instant.nc"
 
     accum_file_path = os.path.join(input_dir, accum_file_name)
     instant_file_path = os.path.join(input_dir, instant_file_name)
