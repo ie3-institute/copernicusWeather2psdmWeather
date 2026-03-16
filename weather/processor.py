@@ -10,28 +10,30 @@ import xarray as xr
 from netCDF4 import Dataset
 from sqlalchemy import text
 from sqlmodel import Session
-
+from weather.database import get_engine
 from coordinates.coordinates import create_coordinates_df
 from definitions import ROOT_DIR
 from weather.convert import (
     convert_grib,
     convert_netCFD,
 )
-from weather.database import create_database_and_tables, engine
+from weather.database import create_database_and_tables
 
 from .db_migration import migrate_time_column
 from .timer import timer
 
 
 def process_weather_data(
-    input_dir, file_name_base, batch_size=1000, perform_migration=True
+   config_path, input_dir, file_name_base, file_format, batch_size=1000, perform_migration=True
 ):
     """
     Process weather data from NetCDF or GRIB files and store in database.
 
     Args:
+        config_path: path of config
         input_dir: Directory containing the weather files
         file_name_base: Base name of the input files
+        file_format: either grib or netCDF
         batch_size: Number of records to process before committing to database
         perform_migration: Whether to perform database migration after processing
 
@@ -41,37 +43,43 @@ def process_weather_data(
         Exception: For other errors during processing
     """
     # Try to find files with different extensions and formats
-    file1_nc = f"{file_name_base}_accum.nc"
-    file2_nc = f"{file_name_base}_instant.nc"
-    file_grib = f"{file_name_base}.grib"
 
-    file1_nc_path = os.path.join(ROOT_DIR, input_dir, file1_nc)
-    file2_nc_path = os.path.join(ROOT_DIR, input_dir, file2_nc)
-
-    file_grib_path = os.path.join(ROOT_DIR, input_dir, file_grib)
-
-    if (
-        os.path.exists(file1_nc_path)
-        and os.path.exists(file2_nc_path)
-        and not os.path.exists(file_grib_path)
-    ):
+    if file_format == "netCDF":
         # netCdf
-        path_found_files = (file1_nc_path, file2_nc_path)
-        file_format = "netcdf"
+        file1_nc = f"{file_name_base}_accum.nc"
+        file2_nc = f"{file_name_base}_instant.nc"
+        file1_nc_path = os.path.join(ROOT_DIR, input_dir, file1_nc)
+        file2_nc_path = os.path.join(ROOT_DIR, input_dir, file2_nc)
 
-    elif os.path.exists(file_grib_path):
+        if not (os.path.exists(file1_nc_path) and os.path.exists(file2_nc_path)):
+            raise FileNotFoundError(
+                f"At least one expected file format netCDF (.nc) could not be found for base name: {file_name_base}\n"
+                f"Searched in directory: {input_dir}\n"
+            )
+
+        path_found_files = (file1_nc_path, file2_nc_path)
+
+    elif file_format=="grib":
         # Grib
+        file_grib = f"{file_name_base}.grib"
+        file_grib_path = os.path.join(ROOT_DIR, input_dir, file_grib)
+        if not os.path.exists(file_grib_path):
+            raise FileNotFoundError(
+                f"Could not find expected file format grib (.grib) for base name: {file_name_base}\n"
+                f"Searched in directory: {input_dir}\n"
+            )
         path_found_files = (file_grib_path, None)
-        file_format = "grib"
     else:
         raise FileNotFoundError(
-            f"No weather data files found for base name: {file_name_base}\n"
+            f"File formate was neither netCDF nor grib or the weather data files could not be found for base name: {file_name_base}\n"
             f"Searched in directory: {input_dir}\n"
             f"Expected formats: NetCDF (.nc) or GRIB (.grib)"
         )
 
     print(f"Path of found files: {path_found_files}, Format: {file_format}")
 
+
+    engine = get_engine(config_path)
     with Session(engine) as session:
         with timer("Database initialization"):
             max_retries = 5
@@ -83,7 +91,7 @@ def process_weather_data(
                         conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
                         conn.commit()
 
-                    create_database_and_tables()
+                    create_database_and_tables(config_path=config_path)
                     print("Database and tables created successfully")
                     break
 
@@ -163,4 +171,4 @@ def process_weather_data(
 
     # Perform database migration after all data has been processed
     if perform_migration:
-        migrate_time_column()
+        migrate_time_column(config_path)

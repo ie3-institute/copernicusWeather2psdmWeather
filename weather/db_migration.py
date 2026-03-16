@@ -4,12 +4,12 @@ Database migration utilities for converting time column format.
 
 from sqlalchemy import text
 
-from weather.database import engine
+from weather.database import get_engine
 
 from .timer import timer
 
 
-def migrate_time_column():
+def migrate_time_column(config_path):
     """
     Migrate weathervalue table to convert the time column from string to timestamptz.
 
@@ -66,7 +66,7 @@ def migrate_time_column():
             ]
 
             # Execute each SQL statement
-            with engine.begin() as conn:
+            with get_engine(config_path).begin() as conn:
                 for i, sql in enumerate(migration_steps):
                     print(f"Executing migration step {i + 1}/{len(migration_steps)}")
                     conn.execute(text(sql))
