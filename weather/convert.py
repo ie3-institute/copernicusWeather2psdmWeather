@@ -1,4 +1,6 @@
+import glob
 import logging
+import os
 from datetime import datetime
 
 import numpy as np
@@ -210,8 +212,14 @@ def convert_grib(
         logger.error(f"Error processing GRIB file: {e}", exc_info=True)
         raise
     finally:
-        if "ds" in locals():
-            ds.close()
+        # Clean up cfgrib index files
+        idx_pattern = grib_file_path + ".*.idx"
+        for idx_file in glob.glob(idx_pattern):
+            try:
+                os.remove(idx_file)
+                logger.info(f"Deleted cfgrib index file: {idx_file}")
+            except Exception as e:
+                logger.warning(f"Could not delete index file {idx_file}: {e}")
 
 
 def get_grib_coordinates(grib_file_path):
