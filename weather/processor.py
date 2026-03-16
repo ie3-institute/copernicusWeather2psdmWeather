@@ -11,15 +11,15 @@ from sqlalchemy import text
 from sqlmodel import Session
 
 from coordinates.coordinates import create_coordinates_df
-from weather.convert import convert
-from weather.database import create_database_and_tables, engine
+from weather.convert import convert_netCFD
+from weather.database import create_database_and_tables, get_engine
 
 from .db_migration import migrate_time_column
 from .timer import timer
 
 
 def process_weather_data(
-    input_dir, file_name_base, batch_size=1000, perform_migration=True
+    config_path, input_dir, file_name_base, batch_size=1000, perform_migration=True
 ):
     """
     Process weather data from NetCDF files and store in database.
@@ -50,6 +50,7 @@ def process_weather_data(
                 f"NetCDF file for {file_desc} not found: {file_path}"
             )
 
+    engine = get_engine(config_path)
     with Session(engine) as session:
         with timer("Database initialization"):
             max_retries = 5
@@ -61,7 +62,7 @@ def process_weather_data(
                         conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
                         conn.commit()
 
-                    create_database_and_tables()
+                    create_database_and_tables(config_path=config_path)
                     print("Database and tables created successfully")
                     break
 
@@ -96,7 +97,9 @@ def process_weather_data(
 
         with timer("Converting weather data"):
             print(f"Starting conversion of data for {file_name_base}")
-            convert(session, accum_data, instant_data, coordinates_dict, batch_size)
+            convert_netCFD(
+                session, accum_data, instant_data, coordinates_dict, batch_size
+            )
             session.commit()
             print("Weather data conversion complete")
 

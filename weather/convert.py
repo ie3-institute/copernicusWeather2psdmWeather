@@ -9,7 +9,7 @@ from sqlmodel import Session
 BASE_TIME = datetime(year=1970, month=1, day=1, tzinfo=pytz.utc)
 
 
-def convert(
+def convert_netCFD(
     session: Session,
     accum_data: Dataset,
     instant_data: Dataset,
