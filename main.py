@@ -23,7 +23,6 @@ def convert_cds_weather(config_path=None):
         file_format = config.get("file_format")
 
         print(f"Loaded configuration from {config_path}")
-        print(f"Using ROOT_DIR: {config.get('ROOT_DIR')}")
         print(f"Using input directory: {input_dir}")
         print(f"Using file name base: {file_name_base}")
         print(f"Using batch size: {batch_size}")

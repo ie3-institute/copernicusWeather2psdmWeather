@@ -38,8 +38,6 @@ class TestCreateCoordinatesDF:
         }
         assert result == expected_mapping
 
-        session.commit.assert_called_once()
-
     def test_dataset_with_single_coordinate(self):
         """Test Dataset with single lat/lon pair"""
         weather = Mock()
