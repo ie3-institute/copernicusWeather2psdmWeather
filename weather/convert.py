@@ -13,8 +13,6 @@ from sqlmodel import Session
 
 BASE_TIME = datetime(year=1970, month=1, day=1, tzinfo=pytz.utc)
 
-logger = logging.getLogger(__name__)
-
 
 def convert_netCFD(
     session: Session,
@@ -112,7 +110,7 @@ def convert_grib(
         coordinates: Dictionary mapping (lat_idx, lon_idx) to coordinate_id
         batch_size: Number of records to process before committing to database
     """
-    logger.info(f"Opening GRIB file with xarray: {grib_file_path}")
+    print(f"Opening GRIB file with xarray: {grib_file_path}")
     try:
         # Open GRIB file
         ds_fdir = xr.open_dataset(
@@ -136,7 +134,7 @@ def convert_grib(
             raise ValueError("No time coordinate found in GRIB file")
 
         time_values = ds_t2m["time"].values
-        logger.info(f"Found {len(time_values)} time steps using coordinate 'time'")
+        print(f"Found {len(time_values)} time steps using coordinate 'time'")
 
         # Process data
         weather_values = []
@@ -188,7 +186,7 @@ def convert_grib(
                     total_records += 1
 
                 except (IndexError, ValueError) as e:
-                    logger.warning(
+                    print(
                         f"Error processing coordinate ({lat_idx}, {lon_idx}) at time {time}: {e}"
                     )
                     continue
@@ -197,22 +195,21 @@ def convert_grib(
         if weather_values:
             session.add_all(weather_values)
             session.commit()
-            logger.info(
+            print(
                 f"Final commit: {len(weather_values)} records. Total processed: {total_records}"
             )
 
     except Exception as e:
-        logger.error(f"Error processing GRIB file: {e}", exc_info=True)
-        raise
+        raise Exception(f"Error processing GRIB file: {e}")
     finally:
         # Clean up cfgrib index files
         idx_pattern = grib_file_path + ".*.idx"
         for idx_file in glob.glob(idx_pattern):
             try:
                 os.remove(idx_file)
-                logger.info(f"Deleted cfgrib index file: {idx_file}")
+                print(f"Deleted cfgrib index file: {idx_file}")
             except Exception as e:
-                logger.warning(f"Could not delete index file {idx_file}: {e}")
+                raise Exception(f"Could not delete index file {idx_file}: {e}")
 
 
 def make_weather_value(time, coordinate_id, ssrd, fdir, temp, u_wind, v_wind):
