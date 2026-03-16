@@ -11,29 +11,16 @@ def extract_lat_lon(weather):
     - xarray (GRIB)
     """
 
-    # Case netCDF4 Dataset
+    # netCDF4 Dataset
     if hasattr(weather, "variables"):
         lats = np.asarray(weather.variables["latitude"])
         lons = np.asarray(weather.variables["longitude"])
         return lats, lons
 
-    # Case xarray (GRIB)
+    # GRIB Dataset
     elif hasattr(weather, "coords"):
-        # Try common coordinate names
-        for lat_name in ["latitude", "lat"]:
-            if lat_name in weather.coords:
-                lats = weather[lat_name].values
-                break
-        else:
-            raise KeyError("Latitude coordinate not found")
-
-        for lon_name in ["longitude", "lon"]:
-            if lon_name in weather.coords:
-                lons = weather[lon_name].values
-                break
-        else:
-            raise KeyError("Longitude coordinate not found")
-
+        lats = weather["latitude"].values
+        lons = weather["longitude"].values
         return lats, lons
 
     else:
