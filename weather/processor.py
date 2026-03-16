@@ -99,9 +99,8 @@ def process_weather_data(
                             f"Failed to connect after {max_retries} attempts"
                         ) from e
 
-        # Process based on file format
         if file_format == "netcdf":
-            # Existing NetCDF processing logic
+            # NetCDF processing logic
             accum_file_path, instant_file_path = path_found_files
 
             with timer("Loading NetCDF files"):
@@ -141,10 +140,11 @@ def process_weather_data(
 
             with timer("Creating coordinates from GRIB"):
                 print(f"Opening GRIB file: {grib_file_path}")
-                weather = xr.open_dataset(
+                #Use coordinates from temperature weather data
+                grib_weather = xr.open_dataset(
                     grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"}
                 )
-                coordinates_dict = create_coordinates_df(weather, session)
+                coordinates_dict = create_coordinates_df(grib_weather, session)
                 print(
                     f"Created coordinates dictionary with {len(coordinates_dict)} entries"
                 )
@@ -156,6 +156,10 @@ def process_weather_data(
                 convert_grib(session, grib_file_path, coordinates_dict, batch_size)
                 session.commit()
                 print("GRIB weather data conversion complete")
+
+            # Close dataset
+            grib_weather.close()
+
 
     # Perform database migration after all data has been processed
     if perform_migration:
