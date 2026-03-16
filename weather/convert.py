@@ -88,6 +88,7 @@ def convert_netCFD(
             f"Final commit: {len(weather_values)} records. Total processed: {total_records}"
         )
 
+
 def make_weather_value(time, coordinate_id, ssrd, fdir, temp, u_wind, v_wind):
     """
     Helper to create a WeatherValue instance from weather parameters.
