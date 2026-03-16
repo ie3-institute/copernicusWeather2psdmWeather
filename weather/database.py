@@ -1,6 +1,7 @@
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, create_engine
+
 from weather.config import load_config
-from sqlmodel import create_engine
+
 
 def get_engine(config_path):
     config = load_config(config_path)

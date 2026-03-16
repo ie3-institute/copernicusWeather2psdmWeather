@@ -10,21 +10,26 @@ import xarray as xr
 from netCDF4 import Dataset
 from sqlalchemy import text
 from sqlmodel import Session
-from weather.database import get_engine
+
 from coordinates.coordinates import create_coordinates_df
 from definitions import ROOT_DIR
 from weather.convert import (
     convert_grib,
     convert_netCFD,
 )
-from weather.database import create_database_and_tables
+from weather.database import create_database_and_tables, get_engine
 
 from .db_migration import migrate_time_column
 from .timer import timer
 
 
 def process_weather_data(
-   config_path, input_dir, file_name_base, file_format, batch_size=1000, perform_migration=True
+    config_path,
+    input_dir,
+    file_name_base,
+    file_format,
+    batch_size=1000,
+    perform_migration=True,
 ):
     """
     Process weather data from NetCDF or GRIB files and store in database.
@@ -59,7 +64,7 @@ def process_weather_data(
 
         path_found_files = (file1_nc_path, file2_nc_path)
 
-    elif file_format=="grib":
+    elif file_format == "grib":
         # Grib
         file_grib = f"{file_name_base}.grib"
         file_grib_path = os.path.join(ROOT_DIR, input_dir, file_grib)
@@ -77,7 +82,6 @@ def process_weather_data(
         )
 
     print(f"Path of found files: {path_found_files}, Format: {file_format}")
-
 
     engine = get_engine(config_path)
     with Session(engine) as session:
@@ -148,7 +152,7 @@ def process_weather_data(
 
             with timer("Creating coordinates from GRIB"):
                 print(f"Opening GRIB file: {grib_file_path}")
-                #Use coordinates from temperature weather data
+                # Use coordinates from temperature weather data
                 grib_weather = xr.open_dataset(
                     grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"}
                 )
@@ -167,7 +171,6 @@ def process_weather_data(
 
             # Close dataset
             grib_weather.close()
-
 
     # Perform database migration after all data has been processed
     if perform_migration:

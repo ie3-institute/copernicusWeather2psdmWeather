@@ -63,7 +63,7 @@ def convert_netCFD(
 
             fDir = float(fdir_array[time_idx, lat_idx, lon_idx])
             influx_total = float(ssrd_array[time_idx, lat_idx, lon_idx])
-            time =  datetime.strptime(time_value, "%Y-%m-%dT%H:%M:%SZ"),
+            time = (datetime.strptime(time_value, "%Y-%m-%dT%H:%M:%SZ"),)
 
             # Create WeatherValue object
             weather_value = make_weather_value(
@@ -174,7 +174,8 @@ def convert_grib(
                     if np.isnan([temp, u_wind, v_wind, ssrd, fdir]).any():
                         raise ValueError("NaN Value occurred during conversion.")
 
-                    weather_value = make_weather_value(time=time,
+                    weather_value = make_weather_value(
+                        time=time,
                         coordinate_id=coordinate_id,
                         ssrd=ssrd,
                         fdir=fdir,
@@ -213,6 +214,7 @@ def convert_grib(
             except Exception as e:
                 logger.warning(f"Could not delete index file {idx_file}: {e}")
 
+
 def make_weather_value(time, coordinate_id, ssrd, fdir, temp, u_wind, v_wind):
     """
     Helper to create a WeatherValue instance from weather parameters.
@@ -229,7 +231,7 @@ def make_weather_value(time, coordinate_id, ssrd, fdir, temp, u_wind, v_wind):
         time=time,
         coordinate_id=coordinate_id,
         aswdifd_s=(ssrd - fdir) / 3600,  # Diffuse radiation (J/m² to Wh/m²)
-        aswdir_s=fdir / 3600,            # Direct radiation (J/m² to Wh/m²)
+        aswdir_s=fdir / 3600,  # Direct radiation (J/m² to Wh/m²)
         t2m=temp,
         u131m=u_wind,
         v131m=v_wind,
