@@ -23,9 +23,6 @@ class BaseWeatherConversionTest:
 
     @pytest.fixture(scope="session")
     def test_config(self, conf_path, tmp_path_factory, postgres_container):
-        import os
-
-        import yaml
         from sqlalchemy.engine.url import make_url
 
         with open(conf_path) as f:
@@ -44,8 +41,6 @@ class BaseWeatherConversionTest:
 
     @pytest.fixture(autouse=True)
     def _setup_db(self):
-        with open(self.CONFIG_PATH) as f:
-            config = yaml.safe_load(f)
         convert_cds_weather(self.CONFIG_PATH)
         self.engine = get_engine(self.CONFIG_PATH)
         self.session = Session(self.engine)
