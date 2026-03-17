@@ -1,5 +1,4 @@
 import csv
-import sys
 from datetime import timezone
 
 import pytest
@@ -11,18 +10,16 @@ from sqlmodel import Session, select
 from main import convert_cds_weather
 from weather.database import get_engine
 
-# Skip all tests in this module on macOS
-pytestmark = pytest.mark.skipif(
-    sys.platform == "darwin",
-    reason="Docker-based integration tests are skipped on macOS",
-)
-
 
 class BaseWeatherConversionTest:
     CONFIG_PATH = None  # Will be set by test
 
     @pytest.fixture(scope="session")
     def postgres_container(self):
+        import sys
+
+        if sys.platform == "darwin":
+            pytest.skip("Docker-based integration tests are skipped on macOS")
         from testcontainers.postgres import PostgresContainer
 
         with PostgresContainer("postgis/postgis:15-3.3") as postgres:
