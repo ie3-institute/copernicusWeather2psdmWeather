@@ -22,17 +22,10 @@ class BaseWeatherConversionTest:
             yield postgres
 
     @pytest.fixture(scope="session")
-    def test_config(self, tmp_path_factory, postgres_container):
-        import os
-
+    def test_config(self, conf_path, tmp_path_factory, postgres_container):
         from sqlalchemy.engine.url import make_url
 
-        from definitions import ROOT_DIR
-
-        config_path = os.path.join(
-            ROOT_DIR, "tests", "integration", "netcdf_conversion_config.yaml"
-        )
-        with open(config_path) as f:
+        with open(conf_path) as f:
             config = yaml.safe_load(f)
         url = postgres_container.get_connection_url()
         u = make_url(url)
@@ -48,8 +41,6 @@ class BaseWeatherConversionTest:
 
     @pytest.fixture(autouse=True)
     def _setup_db(self):
-        with open(self.CONFIG_PATH) as f:
-            config = yaml.safe_load(f)
         convert_cds_weather(self.CONFIG_PATH)
         self.engine = get_engine(self.CONFIG_PATH)
         self.session = Session(self.engine)
