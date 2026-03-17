@@ -12,6 +12,7 @@ pypsdm = "^0.0.6"
 psycopg2 = "^2.9.11"
 netcdf4 = "^1.7.3"
 sqlmodel = "^0.0.24"
+testcontainers = "^4.14.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.2"
