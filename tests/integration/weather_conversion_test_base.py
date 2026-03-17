@@ -1,4 +1,5 @@
 import csv
+import sys
 from datetime import timezone
 
 import pytest
@@ -9,6 +10,12 @@ from sqlmodel import Session, select
 
 from main import convert_cds_weather
 from weather.database import get_engine
+
+# Skip all tests in this module on macOS
+pytestmark = pytest.mark.skipif(
+    sys.platform == "darwin",
+    reason="Docker-based integration tests are skipped on macOS",
+)
 
 
 class BaseWeatherConversionTest:

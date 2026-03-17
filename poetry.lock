@@ -69,7 +69,7 @@ version = "2026.1.4"
 description = "Python package for providing Mozilla's CA Bundle."
 optional = false
 python-versions = ">=3.7"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "certifi-2026.1.4-py3-none-any.whl", hash = "sha256:9943707519e4add1115f44c2bc244f782c0249876bf51b6599fee1ffbedd685c"},
     {file = "certifi-2026.1.4.tar.gz", hash = "sha256:ac726dd470482006e014ad384921ed6438c457018f4b3d204aea4281258b2120"},
@@ -147,7 +147,7 @@ version = "3.4.6"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 optional = false
 python-versions = ">=3.7"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "charset_normalizer-3.4.6-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:2e1d8ca8611099001949d1cdfaefc510cf0f212484fe7c565f735b68c78c3c95"},
     {file = "charset_normalizer-3.4.6-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:e25369dc110d58ddf29b949377a93e0716d72a24f62bad72b2b39f155949c1fd"},
@@ -434,7 +434,7 @@ version = "7.1.0"
 description = "A Python library for the Docker Engine API."
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "docker-7.1.0-py3-none-any.whl", hash = "sha256:c96b93b7f0a746f9e77d325bcfb87422a3d8bd4f03136ae8a85b37f1898d5fc0"},
     {file = "docker-7.1.0.tar.gz", hash = "sha256:ad8c70e6e3f8926cb8a92619b832b4ea5299e2831c14284663184e200546fa6c"},
@@ -699,7 +699,7 @@ version = "3.11"
 description = "Internationalized Domain Names in Applications (IDNA)"
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "idna-3.11-py3-none-any.whl", hash = "sha256:771a87f49d9defaf64091e6e6fe9c18d4833f140bd19464795bc32d966ca37ea"},
     {file = "idna-3.11.tar.gz", hash = "sha256:795dafcc9c04ed0c1fb032c2aa73654d8e8c5023a7df64a53f39190ada629902"},
@@ -1808,7 +1808,7 @@ version = "1.2.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
 optional = false
 python-versions = ">=3.9"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "python_dotenv-1.2.1-py3-none-any.whl", hash = "sha256:b81ee9561e9ca4004139c6cbba3a238c32b03e4894671e181b671e8cb8425d61"},
     {file = "python_dotenv-1.2.1.tar.gz", hash = "sha256:42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6"},
@@ -1890,7 +1890,7 @@ version = "311"
 description = "Python for Window Extensions"
 optional = false
 python-versions = "*"
-groups = ["main"]
+groups = ["dev"]
 markers = "sys_platform == \"win32\""
 files = [
     {file = "pywin32-311-cp310-cp310-win32.whl", hash = "sha256:d03ff496d2a0cd4a5893504789d4a15399133fe82517455e78bad62efbb7f0a3"},
@@ -2004,7 +2004,7 @@ version = "2.32.5"
 description = "Python HTTP for Humans."
 optional = false
 python-versions = ">=3.9"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6"},
     {file = "requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf"},
@@ -2327,7 +2327,7 @@ version = "4.14.1"
 description = "Python library for throwaway instances of anything that can run in a Docker container"
 optional = false
 python-versions = ">=3.10"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "testcontainers-4.14.1-py3-none-any.whl", hash = "sha256:03dfef4797b31c82e7b762a454b6afec61a2a512ad54af47ab41e4fa5415f891"},
     {file = "testcontainers-4.14.1.tar.gz", hash = "sha256:316f1bb178d829c003acd650233e3ff3c59a833a08d8661c074f58a4fbd42a64"},
@@ -2381,7 +2381,7 @@ version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
 optional = false
 python-versions = ">=3.9"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"},
     {file = "typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466"},
@@ -2420,7 +2420,7 @@ version = "2.6.3"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
 python-versions = ">=3.9"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "urllib3-2.6.3-py3-none-any.whl", hash = "sha256:bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4"},
     {file = "urllib3-2.6.3.tar.gz", hash = "sha256:1b62b6884944a57dbe321509ab94fd4d3b307075e0c2eae991ac71ee15ad38ed"},
@@ -2475,7 +2475,7 @@ version = "2.1.2"
 description = "Module for decorators, wrappers and monkey patching."
 optional = false
 python-versions = ">=3.9"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "wrapt-2.1.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4b7a86d99a14f76facb269dc148590c01aaf47584071809a70da30555228158c"},
     {file = "wrapt-2.1.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:a819e39017f95bf7aede768f75915635aa8f671f2993c036991b8d3bfe8dbb6f"},
@@ -2575,4 +2575,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">3.11,<3.13"
-content-hash = "1ee6a20cfd279bb6309bbccfad0fbc5a2cb30245de7d158d8a7cfa02972ef9cc"
+content-hash = "62053f9ab6a4cc7551f43f402a1a2437eab0bf7cb66005eb66c631c9665993ae"
