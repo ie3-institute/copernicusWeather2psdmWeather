@@ -93,7 +93,6 @@ def convert_netCFD(
             f"Final commit: {len(weather_values)} records. Total processed: {total_records}"
         )
 
-
 def convert_grib(
     session: Session,
     grib_file_path: str,
