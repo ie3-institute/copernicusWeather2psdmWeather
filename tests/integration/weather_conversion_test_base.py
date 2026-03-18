@@ -22,7 +22,7 @@ class BaseWeatherConversionTest:
             pytest.skip("Docker-based integration tests are skipped on macOS")
         from testcontainers.postgres import PostgresContainer
 
-        with PostgresContainer("postgis/postgis:15-3.3") as postgres:
+        with PostgresContainer("postgis/postgis:18-3.6") as postgres:
             yield postgres
 
     @pytest.fixture(scope="session")
