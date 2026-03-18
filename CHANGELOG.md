@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implementing auto-merge for dependabot PRs [#12](https://github.com/ie3-institute/copernicusWeather2psdmWeather/issues/12)
 - Initialisation of this converter [#1](https://github.com/ie3-institute/copernicusWeather2psdmWeather/issues/1)
+- Integration test for netCFD conversion [#51](https://github.com/ie3-institute/copernicusWeather2psdmWeather/issues/51)
 
 ### Changed
 - Disabled auto-merge for minor Dependabot updates [#20](https://github.com/ie3-institute/copernicusWeather2psdmWeather/issues/20)

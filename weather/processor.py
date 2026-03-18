@@ -11,45 +11,65 @@ from sqlalchemy import text
 from sqlmodel import Session
 
 from coordinates.coordinates import create_coordinates_df
-from weather.convert import convert
-from weather.database import create_database_and_tables, engine
+from definitions import ROOT_DIR
+from weather.convert import convert_netCFD
+from weather.database import create_database_and_tables, get_engine
 
 from .db_migration import migrate_time_column
 from .timer import timer
 
 
 def process_weather_data(
-    input_dir, file_name_base, batch_size=1000, perform_migration=True
+    config_path,
+    input_dir,
+    file_name_base,
+    file_format,
+    batch_size=1000,
+    perform_migration=True,
 ):
     """
     Process weather data from NetCDF files and store in database.
 
     Args:
-        input_dir: Directory containing the NetCDF files
-        file_name_base: Base name of the input files without _accum.nc or _instant.nc
+        config_path: path of config
+        input_dir: Directory containing the weather files
+        file_name_base: Base name of the input files
+        file_format: netCDF
         batch_size: Number of records to process before committing to database
+        perform_migration: Whether to perform database migration after processing
 
     Raises:
         FileNotFoundError: If input files don't exist
         OSError: If there are issues accessing the files
         Exception: For other errors during processing
     """
-    accum_file_name = f"{file_name_base}_accum.nc"
-    instant_file_name = f"{file_name_base}_instant.nc"
+    # Try to find files with different extensions and formats
 
-    accum_file_path = os.path.join(input_dir, accum_file_name)
-    instant_file_path = os.path.join(input_dir, instant_file_name)
+    if file_format == "netcdf":
+        # netCdf
+        file1_nc = f"{file_name_base}-accum.nc"
+        file2_nc = f"{file_name_base}-instant.nc"
+        file1_nc_path = os.path.join(ROOT_DIR, input_dir, file1_nc)
+        file2_nc_path = os.path.join(ROOT_DIR, input_dir, file2_nc)
 
-    # Validate input files exist
-    for file_path, file_desc in [
-        (accum_file_path, "accumulated data"),
-        (instant_file_path, "instant data"),
-    ]:
-        if not os.path.exists(file_path):
+        if not (os.path.exists(file1_nc_path) and os.path.exists(file2_nc_path)):
             raise FileNotFoundError(
-                f"NetCDF file for {file_desc} not found: {file_path}"
+                f"At least one expected file format netCDF (.nc) could not be found for base name: {file_name_base}\n"
+                f"Searched in directory: {input_dir}\n"
             )
 
+        path_found_files = (file1_nc_path, file2_nc_path)
+
+    else:
+        raise FileNotFoundError(
+            f"File format netCDF or the weather data files could not be found for base name: {file_name_base}\n"
+            f"Searched in directory: {input_dir}\n"
+            f"Expected formats: NetCDF (.nc) or GRIB (.grib)"
+        )
+
+    print(f"Path of found files: {path_found_files}, Format: {file_format}")
+
+    engine = get_engine(config_path)
     with Session(engine) as session:
         with timer("Database initialization"):
             max_retries = 5
@@ -61,7 +81,7 @@ def process_weather_data(
                         conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
                         conn.commit()
 
-                    create_database_and_tables()
+                    create_database_and_tables(config_path=config_path)
                     print("Database and tables created successfully")
                     break
 
@@ -77,33 +97,41 @@ def process_weather_data(
                             f"Failed to connect after {max_retries} attempts"
                         ) from e
 
-        with timer("Loading NetCDF files"):
-            print(f"Opening NetCDF files: {accum_file_name} and {instant_file_name}")
-            accum_data = Dataset(accum_file_path, "r", format="NETCDF4")
-            instant_data = Dataset(instant_file_path, "r", format="NETCDF4")
+        if file_format == "netcdf":
+            # NetCDF processing logic
+            accum_file_path, instant_file_path = path_found_files
+
+            with timer("Loading NetCDF files"):
+                print(
+                    f"Opening NetCDF files: {accum_file_path} and {instant_file_path}"
+                )
+                accum_data = Dataset(accum_file_path, "r", format="NETCDF4")
+                instant_data = Dataset(instant_file_path, "r", format="NETCDF4")
 
             # Print dataset information
             print(f"Accumulated data dimensions: {accum_data.dimensions}")
             print(f"Instant data dimensions: {instant_data.dimensions}")
 
-        with timer("Creating coordinates"):
-            coordinates_dict = create_coordinates_df(instant_data, session)
-            print(
-                f"Created coordinates dictionary with {len(coordinates_dict)} entries"
-            )
-            session.commit()
-            print("Coordinates committed to database")
+            with timer("Creating coordinates"):
+                coordinates_dict = create_coordinates_df(instant_data, session)
+                print(
+                    f"Created coordinates dictionary with {len(coordinates_dict)} entries"
+                )
+                session.commit()
+                print("Coordinates committed to database")
 
-        with timer("Converting weather data"):
-            print(f"Starting conversion of data for {file_name_base}")
-            convert(session, accum_data, instant_data, coordinates_dict, batch_size)
-            session.commit()
-            print("Weather data conversion complete")
+            with timer("Converting weather data"):
+                print(f"Starting conversion of NetCDF data for {file_name_base}")
+                convert_netCFD(
+                    session, accum_data, instant_data, coordinates_dict, batch_size
+                )
+                session.commit()
+                print("Weather data conversion complete")
 
-        # Close the datasets
-        accum_data.close()
-        instant_data.close()
+            # Close the datasets
+            accum_data.close()
+            instant_data.close()
 
     # Perform database migration after all data has been processed
     if perform_migration:
-        migrate_time_column()
+        migrate_time_column(config_path)
