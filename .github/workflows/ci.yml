@@ -104,11 +104,6 @@ jobs:
           # Try with --no-update, fallback if not supported
           poetry lock --no-update || poetry lock
           poetry install --no-root --no-interaction
-          
-          # Install cfgrib Python package
-          source .venv/bin/activate
-          pip install cfgrib
-
       #----------------------------------------------
       #    run test suite
       #----------------------------------------------
