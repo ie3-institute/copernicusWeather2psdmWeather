@@ -133,6 +133,9 @@ def convert_grib(
 
         time_objects = [pd.to_datetime(t).to_pydatetime() for t in time_values]
 
+        # Handle times for accumulated weather data (radiation), based on ssrd
+        valid_times = ds_ssrd["valid_time"].values
+
         for time_idx, time in enumerate(time_objects):
 
             # Get data for this time step
@@ -140,8 +143,6 @@ def convert_grib(
             u_wind_data = ds_other_weather_val["u100"].isel(time=time_idx).values
             v_wind_data = ds_other_weather_val["v100"].isel(time=time_idx).values
 
-            # Handle times for accumulated weather data (radiation), based on ssrd
-            valid_times = ds_ssrd["valid_time"].values
             target_time = np.datetime64(time)
             match = np.where(valid_times == target_time)
             if match[0].size == 0:
