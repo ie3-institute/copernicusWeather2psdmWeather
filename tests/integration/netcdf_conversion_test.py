@@ -10,7 +10,7 @@ from .weather_conversion_test_base import BaseWeatherConversionTest
 @pytest.fixture(scope="session")
 def conf_path():
     return os.path.join(
-        ROOT_DIR, "tests", "integration", "netcdf_conversion_config.yaml"
+        ROOT_DIR, "tests", "integration", "../resources/integration/netcdf_conversion_config.yaml"
     )
 
 
