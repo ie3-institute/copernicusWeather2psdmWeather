@@ -118,21 +118,13 @@ def convert_grib(
         ds_ssrd = xr.open_dataset(
             grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "ssrd"}
         )
-        ds_t2m = xr.open_dataset(
-            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"}
-        )
-        ds_u100 = xr.open_dataset(
-            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100u"}
-        )
-        ds_v100 = xr.open_dataset(
-            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100v"}
-        )
+        ds_other_weather_val = xr.open_dataset(grib_file_path, engine="cfgrib")
 
-        # Use temperature dataset for time reference
-        if "time" not in ds_t2m.coords:
+        # Use ds_other_weather_val dataset for time reference
+        if "time" not in ds_other_weather_val.coords:
             raise ValueError("No time coordinate found in GRIB file")
 
-        time_values = ds_t2m["time"].values
+        time_values = ds_other_weather_val["time"].values
         print(f"Found {len(time_values)} time steps using coordinate 'time'")
 
         # Process data
@@ -144,9 +136,9 @@ def convert_grib(
         for time_idx, time in enumerate(time_objects):
 
             # Get data for this time step
-            temp_data = ds_t2m["t2m"].isel(time=time_idx).values
-            u_wind_data = ds_u100["u100"].isel(time=time_idx).values
-            v_wind_data = ds_v100["v100"].isel(time=time_idx).values
+            temp_data = ds_other_weather_val["t2m"].isel(time=time_idx).values
+            u_wind_data = ds_other_weather_val["u100"].isel(time=time_idx).values
+            v_wind_data = ds_other_weather_val["v100"].isel(time=time_idx).values
 
             # Handle times for accumulated weather data (radiation), based on ssrd
             valid_times = ds_ssrd["valid_time"].values
