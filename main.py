@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Main entry point for weather data processing application.
+Utility script for processing weather data from GRIB or NetCDF files.
 """
 
 from weather.config import load_config

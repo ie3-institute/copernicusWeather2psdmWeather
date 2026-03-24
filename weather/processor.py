@@ -1,18 +1,22 @@
 """
-Main weather data processing functionality.
+Main weather data processing functionality with GRIB and NetCDF support.
 """
 
 import os
 import time
 
 import sqlalchemy
+import xarray as xr
 from netCDF4 import Dataset
 from sqlalchemy import text
 from sqlmodel import Session
 
 from coordinates.coordinates import create_coordinates_df
 from definitions import ROOT_DIR
-from weather.convert import convert_netCFD
+from weather.convert import (
+    convert_grib,
+    convert_netCFD,
+)
 from weather.database import create_database_and_tables, get_engine
 
 from .db_migration import migrate_time_column
@@ -28,13 +32,13 @@ def process_weather_data(
     perform_migration=True,
 ):
     """
-    Process weather data from NetCDF files and store in database.
+    Process weather data from NetCDF or GRIB files and store in database.
 
     Args:
         config_path: path of config
         input_dir: Directory containing the weather files
         file_name_base: Base name of the input files
-        file_format: netCDF
+        file_format: either grib or netCDF
         batch_size: Number of records to process before committing to database
         perform_migration: Whether to perform database migration after processing
 
@@ -60,9 +64,19 @@ def process_weather_data(
 
         path_found_files = (file1_nc_path, file2_nc_path)
 
+    elif file_format == "grib":
+        # Grib
+        file_grib = f"{file_name_base}.grib"
+        file_grib_path = os.path.join(ROOT_DIR, input_dir, file_grib)
+        if not os.path.exists(file_grib_path):
+            raise FileNotFoundError(
+                f"Could not find expected file format grib (.grib) for base name: {file_name_base}\n"
+                f"Searched in directory: {input_dir}\n"
+            )
+        path_found_files = (file_grib_path, None)
     else:
         raise FileNotFoundError(
-            f"File format netCDF or the weather data files could not be found for base name: {file_name_base}\n"
+            f"File formate was neither netCDF nor grib or the weather data files could not be found for base name: {file_name_base}\n"
             f"Searched in directory: {input_dir}\n"
             f"Expected formats: NetCDF (.nc) or GRIB (.grib)"
         )
@@ -131,6 +145,32 @@ def process_weather_data(
             # Close the datasets
             accum_data.close()
             instant_data.close()
+
+        elif file_format in ["grib"]:
+            # GRIB processing logic
+            grib_file_path = path_found_files[0]
+
+            with timer("Creating coordinates from GRIB"):
+                print(f"Opening GRIB file: {grib_file_path}")
+                # Use coordinates from temperature weather data
+                grib_weather = xr.open_dataset(
+                    grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"}
+                )
+                coordinates_dict = create_coordinates_df(grib_weather, session)
+                print(
+                    f"Created coordinates dictionary with {len(coordinates_dict)} entries"
+                )
+                session.commit()
+                print("Coordinates committed to database")
+
+            with timer("Converting GRIB weather data"):
+                print(f"Starting conversion of GRIB data for {file_name_base}")
+                convert_grib(session, grib_file_path, coordinates_dict, batch_size)
+                session.commit()
+                print("GRIB weather data conversion complete")
+
+            # Close dataset
+            grib_weather.close()
 
     # Perform database migration after all data has been processed
     if perform_migration:

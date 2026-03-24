@@ -1,6 +1,6 @@
 # copernicusWeather2psdmWeather
 
-Converts [copernicus.eu](https://cds.climate.copernicus.eu/) netCDF4 weather data to [PowerSystemDataModel](https://github.com/ie3-institute/PowerSystemDataModel) weather data format.
+Converts [copernicus.eu](https://cds.climate.copernicus.eu/) weather data in format GRIB or netCDF4 to [PowerSystemDataModel](https://github.com/ie3-institute/PowerSystemDataModel) weather data format.
 
 ## How To Use
 
@@ -14,9 +14,11 @@ Here the parameter of the PostGreSql-Database can be assigned:
 - `db_name`: Name of the database, `N51_5W6_5S51_0E9_0-20250601-20250604`
 - `input_dir`: Location of the CDS input files, e.g. `input/samples`
 - `file_name_base`: First part of the input files, see comment below. e.g. `N51_5W6_5S51_0E9_0-20250601-20250604`
+- `file_format`: Either `grib` or `netcdf`. e.g. `grib`
 
 So far we support the following format of input files:
 - netCDF4
+- GRIB
 
 To start converter
 - Adapt config file

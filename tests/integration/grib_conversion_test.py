@@ -13,16 +13,16 @@ def conf_path():
         ROOT_DIR,
         "tests",
         "integration",
-        "../resources/integration/netcdf_conversion_config.yaml",
+        "../resources/integration/grib_conversion_config.yaml",
     )
 
 
-class TestNetCDFConversion(BaseWeatherConversionTest):
+class TestGribConversion(BaseWeatherConversionTest):
     @pytest.fixture(autouse=True)
     def _inject_config(self, test_config):
         self.CONFIG_PATH = test_config
 
-    def test_netcdf_conversion_creates_weather_values(self):
+    def test_grib_conversion_creates_weather_values(self):
         csv_path = os.path.join(
             ROOT_DIR,
             "tests",

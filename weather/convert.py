@@ -1,6 +1,11 @@
+import glob
+import os
 from datetime import datetime
 
+import numpy as np
+import pandas as pd
 import pytz
+import xarray as xr
 from netCDF4 import Dataset, num2date
 from pypsdm.db.weather.models import WeatherValue
 from sqlmodel import Session
@@ -87,6 +92,125 @@ def convert_netCFD(
         print(
             f"Final commit: {len(weather_values)} records. Total processed: {total_records}"
         )
+
+
+def convert_grib(
+    session: Session,
+    grib_file_path: str,
+    coordinates: dict,
+    batch_size: int = 1000,
+):
+    """
+    Converts raw weather data from GRIB file into database entries using cfgrib/xarray.
+
+    Args:
+        session: SQLModel database session
+        grib_file_path: Path to the GRIB file
+        coordinates: Dictionary mapping (lat_idx, lon_idx) to coordinate_id
+        batch_size: Number of records to process before committing to database
+    """
+    print(f"Opening GRIB file with xarray: {grib_file_path}")
+    try:
+        # Open GRIB file
+        ds_fdir = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "fdir"}
+        )
+        ds_ssrd = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "ssrd"}
+        )
+        ds_t2m = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "2t"}
+        )
+        ds_u100 = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100u"}
+        )
+        ds_v100 = xr.open_dataset(
+            grib_file_path, engine="cfgrib", filter_by_keys={"shortName": "100v"}
+        )
+
+        # Use temperature dataset for time reference
+        if "time" not in ds_t2m.coords:
+            raise ValueError("No time coordinate found in GRIB file")
+
+        time_values = ds_t2m["time"].values
+        print(f"Found {len(time_values)} time steps using coordinate 'time'")
+
+        # Process data
+        weather_values = []
+        total_records = 0
+
+        time_objects = [pd.to_datetime(t).to_pydatetime() for t in time_values]
+
+        # Handle times for accumulated weather data (radiation), based on ssrd
+        valid_times = ds_ssrd["valid_time"].values
+
+        for time_idx, time in enumerate(time_objects):
+            print(f"Processing time index {time_idx}/{len(time_objects)}")
+
+            # Get data for this time step
+            temp_data = ds_t2m["t2m"].isel(time=time_idx).values
+            u_wind_data = ds_u100["u100"].isel(time=time_idx).values
+            v_wind_data = ds_v100["v100"].isel(time=time_idx).values
+
+            target_time = np.datetime64(time)
+            match = np.where(valid_times == target_time)
+            if match[0].size == 0:
+                raise Exception(f"No matching valid_time for {target_time}, skipping.")
+            ssrd_time_idx, ssrd_step_idx = match[0][0], match[1][0]
+
+            ssrd_slice = ds_ssrd["ssrd"].values[ssrd_time_idx, ssrd_step_idx]
+            # using ssrd time and step index also for fdir
+            fdir_slice = ds_fdir["fdir"].values[ssrd_time_idx, ssrd_step_idx]
+
+            for (lat_idx, lon_idx), coordinate_id in coordinates.items():
+                try:
+                    ssrd = float(ssrd_slice[lat_idx, lon_idx])
+                    fdir = float(fdir_slice[lat_idx, lon_idx])
+                    temp = float(temp_data[lat_idx, lon_idx])
+                    u_wind = float(u_wind_data[lat_idx, lon_idx])
+                    v_wind = float(v_wind_data[lat_idx, lon_idx])
+
+                    if np.isnan([temp, u_wind, v_wind, ssrd, fdir]).any():
+                        raise ValueError("NaN Value occurred during conversion.")
+
+                    weather_value = make_weather_value(
+                        time=time,
+                        coordinate_id=coordinate_id,
+                        ssrd=ssrd,
+                        fdir=fdir,
+                        temp=temp,
+                        u_wind=u_wind,
+                        v_wind=v_wind,
+                    )
+
+                    weather_values.append(weather_value)
+                    total_records += 1
+
+                except (IndexError, ValueError) as e:
+                    print(
+                        f"Error processing coordinate ({lat_idx}, {lon_idx}) at time {time}: {e}"
+                    )
+                    continue
+
+        # Add any remaining weather values
+        if weather_values:
+            session.add_all(weather_values)
+            session.commit()
+            print(
+                f"Final commit: {len(weather_values)} records. Total processed: {total_records}"
+            )
+
+    except Exception as e:
+        raise Exception(f"Error processing GRIB file: {e}")
+    finally:
+        # Clean up cfgrib index files
+        idx_pattern = grib_file_path + ".*.idx"
+        for idx_file in glob.glob(idx_pattern):
+            try:
+                os.remove(idx_file)
+                print(f"Deleted cfgrib index file: {idx_file}")
+            except Exception as e:
+                raise Exception(f"Could not delete index file {idx_file}: {e}")
 
 
 def make_weather_value(time, coordinate_id, ssrd, fdir, temp, u_wind, v_wind):
