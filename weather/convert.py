@@ -145,6 +145,7 @@ def convert_grib(
         valid_times = ds_ssrd["valid_time"].values
 
         for time_idx, time in enumerate(time_objects):
+            print(f"Processing time index {time_idx}/{len(time_objects)}")
 
             # Get data for this time step
             temp_data = ds_t2m["t2m"].isel(time=time_idx).values
