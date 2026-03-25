@@ -104,6 +104,16 @@ jobs:
           # Try with --no-update, fallback if not supported
           poetry lock --no-update || poetry lock
           poetry install --no-root --no-interaction
+
+      #----------------------------------------------
+      #       Install ecCodes dependencies
+      #----------------------------------------------
+      - name: Install ecCodes (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeccodes0 libeccodes-dev
+
       #----------------------------------------------
       #    run test suite
       #----------------------------------------------
