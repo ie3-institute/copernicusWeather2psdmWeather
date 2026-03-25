@@ -13,7 +13,7 @@ psycopg2 = "^2.9.11"
 netcdf4 = "^1.7.3"
 sqlmodel = "^0.0.24"
 cfgrib = "^0.9.15.0"
-xarray = "^2025.6.1"
+xarray = "^2026.2.0"
 pyarrow = "^23.0.1"
 pandas = "^2.2.3"
 
