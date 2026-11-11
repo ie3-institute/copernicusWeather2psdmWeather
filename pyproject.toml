@@ -20,7 +20,7 @@ pandas = "^2.2.3"
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.3"
 flake8 = "^7.3.0"
-flake8-black = "^0.4.0"
+flake8-black = ">=0.4,<0.6"
 flake8-isort = "^7.0.0"
 pre-commit = "^4.5.1"
 PyYAML = "^6.0"
